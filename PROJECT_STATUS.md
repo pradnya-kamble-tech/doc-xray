@@ -71,3 +71,5 @@ npm run dev
 cd apps/api
 python scripts/train_risk_classifier.py
 ```
+
+*Note: The repository was successfully verified and synced with GitHub.*
