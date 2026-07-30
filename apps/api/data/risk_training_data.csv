@@ -1,0 +1,181 @@
+text,label
+"This agreement shall terminate immediately upon written notice if the defaulting party fails to cure the breach within thirty days.",HIGH_RISK
+"The indemnifying party shall defend, indemnify, and hold harmless the other party from any claims, damages, or liabilities.",HIGH_RISK
+"Limitation of liability: in no event shall either party be liable for consequential, incidental, or punitive damages.",HIGH_RISK
+"Force majeure: neither party shall be liable for delays caused by circumstances beyond reasonable control.",HIGH_RISK
+"Any disputes arising out of this agreement shall be resolved through binding arbitration.",HIGH_RISK
+"The borrower agrees to pay a penalty of 2% per month on any overdue amounts.",HIGH_RISK
+"In the event of default, the lender may accelerate the entire loan balance.",HIGH_RISK
+"The company may be required to repurchase shares at a substantial premium if certain conditions are triggered.",HIGH_RISK
+"All intellectual property created during the term shall irrevocably vest in the company.",HIGH_RISK
+"The guarantor unconditionally and irrevocably guarantees payment of all obligations.",HIGH_RISK
+"Failure to comply with this covenant constitutes an event of default.",HIGH_RISK
+"This clause creates a lien on all assets of the borrower.",HIGH_RISK
+"Liquidated damages in the amount of $500,000 shall become payable upon breach.",HIGH_RISK
+"The non-compete clause prohibits the employee from working in the industry for 3 years.",HIGH_RISK
+"The escrow funds shall be forfeited in the event of a material breach.",HIGH_RISK
+"Any sublicense granted under this agreement terminates automatically upon expiration.",HIGH_RISK
+"The patent holder reserves all rights to revoke the license at its sole discretion.",HIGH_RISK
+"Regulatory risk: changes in applicable law may materially adversely affect the company.",HIGH_RISK
+"The security interest grants the lender priority claim over all collateral.",HIGH_RISK
+"Cross-default provision: default under any related agreement constitutes a default here.",HIGH_RISK
+"This agreement is subject to modification based on mutual written consent of both parties.",MEDIUM_RISK
+"The term of this agreement is three years, with an option to renew for additional periods.",MEDIUM_RISK
+"Either party may terminate this agreement with sixty days prior written notice.",MEDIUM_RISK
+"The confidentiality obligations shall survive termination of this agreement for five years.",MEDIUM_RISK
+"The service provider shall maintain adequate insurance coverage throughout the term.",MEDIUM_RISK
+"Revenue recognition will be deferred until all performance obligations are satisfied.",MEDIUM_RISK
+"The audit rights allow the other party to inspect records once per calendar year.",MEDIUM_RISK
+"This contract is governed by the laws of the State of Delaware.",MEDIUM_RISK
+"The contractor acknowledges and accepts the payment schedule outlined in Schedule A.",MEDIUM_RISK
+"Net-30 payment terms apply to all invoices submitted under this agreement.",MEDIUM_RISK
+"Quarterly reports shall be submitted within 15 business days after each quarter ends.",MEDIUM_RISK
+"The scope of work may be modified through a written change order process.",MEDIUM_RISK
+"Subcontracting is permitted with the prior written approval of the client.",MEDIUM_RISK
+"Warranties are valid for 12 months from the date of delivery.",MEDIUM_RISK
+"The service level agreement requires 99.9% uptime during business hours.",MEDIUM_RISK
+"Dispute resolution shall first be attempted through good-faith negotiation.",MEDIUM_RISK
+"Renewal pricing will be subject to a maximum annual increase of 5%.",MEDIUM_RISK
+"The vendor must provide 48-hour advance notice before any scheduled maintenance.",MEDIUM_RISK
+"This agreement supersedes all prior understandings between the parties.",MEDIUM_RISK
+"The assignment of rights requires written consent from the other party.",MEDIUM_RISK
+"This document provides background information on the company's operations.",LOW_RISK
+"The company was founded in 2010 and has grown to serve over 500 customers.",LOW_RISK
+"Our product is designed to improve workflow efficiency for small businesses.",LOW_RISK
+"The research team meets every Tuesday to review progress.",LOW_RISK
+"Customer satisfaction scores have improved by 15% over the last quarter.",LOW_RISK
+"The new office location will be in San Francisco's financial district.",LOW_RISK
+"Our engineering team follows agile development practices.",LOW_RISK
+"The company plans to expand its product line in the next fiscal year.",LOW_RISK
+"Training materials are available to all employees on the company intranet.",LOW_RISK
+"The annual company retreat will take place in October.",LOW_RISK
+"This section describes the general purpose and scope of the project.",LOW_RISK
+"The technical requirements are documented in the attached appendix.",LOW_RISK
+"Monthly newsletter updates will be sent to all subscribers.",LOW_RISK
+"The project timeline is estimated at six months from kickoff.",LOW_RISK
+"The committee reviewed the budget and approved the allocation.",LOW_RISK
+"All employees are encouraged to participate in the wellness program.",LOW_RISK
+"The product documentation is available in English and Spanish.",LOW_RISK
+"Standard shipping is included with all orders over fifty dollars.",LOW_RISK
+"Customer support is available Monday through Friday from 9am to 5pm.",LOW_RISK
+"The system generates automated weekly performance reports.",LOW_RISK
+"Creditors may petition for involuntary bankruptcy if the company fails to pay debts.",HIGH_RISK
+"The merger agreement contains material adverse change clauses affecting closing conditions.",HIGH_RISK
+"The company's cash flow may be insufficient to service its debt obligations.",HIGH_RISK
+"Failure to maintain the required debt coverage ratio triggers immediate loan recall.",HIGH_RISK
+"The preferred shareholders have liquidation preference over common stockholders.",HIGH_RISK
+"Anti-dilution provisions protect existing shareholders from ownership percentage reduction.",HIGH_RISK
+"The promissory note carries a variable interest rate which may increase substantially.",HIGH_RISK
+"Creditor subordination clauses affect repayment priority in case of insolvency.",HIGH_RISK
+"The contract includes a clawback provision for performance-based compensation.",HIGH_RISK
+"Material misrepresentation in this agreement constitutes grounds for rescission.",HIGH_RISK
+"Interest rates on outstanding balances will be reviewed quarterly by the board.",MEDIUM_RISK
+"The company allocates 10% of annual revenue to research and development.",MEDIUM_RISK
+"Performance reviews are conducted semi-annually for all full-time employees.",MEDIUM_RISK
+"Inventory levels are tracked using an enterprise resource planning system.",MEDIUM_RISK
+"Staff onboarding takes approximately two weeks for new hires.",MEDIUM_RISK
+"The software platform supports integration with third-party applications.",MEDIUM_RISK
+"Data backups are performed nightly and stored in a secure off-site location.",MEDIUM_RISK
+"The marketing campaign is scheduled to launch in Q3.",MEDIUM_RISK
+"Customer data is handled in accordance with applicable privacy regulations.",MEDIUM_RISK
+"The vendor provides standard 90-day warranties on all hardware products.",MEDIUM_RISK
+"New features will be released in the upcoming version 3.0 update.",LOW_RISK
+"The user interface has been redesigned for improved accessibility.",LOW_RISK
+"Our team participated in a community volunteer event last month.",LOW_RISK
+"The conference agenda includes keynote speeches and breakout sessions.",LOW_RISK
+"Feedback from the pilot program has been overwhelmingly positive.",LOW_RISK
+"The accounting department uses standardized templates for all reports.",LOW_RISK
+"The mobile app is available for download on iOS and Android platforms.",LOW_RISK
+"Weekly stand-up meetings help the team stay aligned on priorities.",LOW_RISK
+"The cafeteria now offers vegetarian and vegan meal options.",LOW_RISK
+"Parking validation is available for guests visiting the main office.",LOW_RISK
+"The supplier shall maintain compliance with all applicable health and safety regulations.",MEDIUM_RISK
+"Price adjustments are tied to the Consumer Price Index.",MEDIUM_RISK
+"The license grants a non-exclusive, revocable right to use the software.",MEDIUM_RISK
+"Export control compliance is the responsibility of the purchasing party.",MEDIUM_RISK
+"The agreement includes a most-favored-nation pricing clause.",MEDIUM_RISK
+"All deliverables must meet the quality standards specified in Exhibit B.",MEDIUM_RISK
+"The escrow agent will release funds upon satisfaction of milestone conditions.",MEDIUM_RISK
+"Any waiver of a right shall not constitute a waiver of future rights.",MEDIUM_RISK
+"The agreement shall be binding on the successors and assigns of the parties.",MEDIUM_RISK
+"Data retention policies require that records be kept for a minimum of seven years.",MEDIUM_RISK
+"Violation of this agreement may result in injunctive relief and monetary damages.",HIGH_RISK
+"The company acknowledges potential regulatory sanctions under securities law.",HIGH_RISK
+"Breach of the exclusivity clause entitles the non-breaching party to specific performance.",HIGH_RISK
+"The acceleration clause requires immediate repayment of the entire principal balance.",HIGH_RISK
+"The personal guarantee makes the individual jointly and severally liable for all debts.",HIGH_RISK
+"Insolvency proceedings may be initiated if the company cannot meet its obligations.",HIGH_RISK
+"The lender has the right to foreclose on the mortgaged property upon default.",HIGH_RISK
+"A change of control triggers mandatory repurchase at a 101% premium.",HIGH_RISK
+"The arbitration award shall be final, binding, and non-appealable.",HIGH_RISK
+"Willful misconduct or gross negligence voids all liability limitations herein.",HIGH_RISK
+"Annual employee satisfaction surveys are used to improve workplace culture.",LOW_RISK
+"The library contains over 500 reference books available to all staff.",LOW_RISK
+"Team building activities are organized every quarter by HR.",LOW_RISK
+"The company blog is updated weekly with industry news and insights.",LOW_RISK
+"Remote work options are available for eligible positions after the probation period.",LOW_RISK
+"The employee handbook outlines all company policies and procedures.",LOW_RISK
+"Office supplies are ordered through the centralized procurement portal.",LOW_RISK
+"New hires receive a welcome kit on their first day.",LOW_RISK
+"The company sponsors local youth sports teams as part of its community initiative.",LOW_RISK
+"Environmental sustainability goals are reviewed every six months.",LOW_RISK
+"Withholding tax applies to royalty payments made to non-resident entities.",MEDIUM_RISK
+"Cryptocurrency holdings must be disclosed in the company's financial statements.",MEDIUM_RISK
+"The audit committee has oversight responsibility for financial reporting integrity.",MEDIUM_RISK
+"Transfer pricing regulations must be adhered to for intercompany transactions.",MEDIUM_RISK
+"The insurance policy covers errors and omissions up to $5 million per occurrence.",MEDIUM_RISK
+"Escrow funds will be released upon successful completion of the post-merger audit.",MEDIUM_RISK
+"The company must obtain board approval for acquisitions exceeding $10 million.",MEDIUM_RISK
+"The credit facility includes a revolving line of credit with an annual reset.",MEDIUM_RISK
+"Renegotiation of terms is permitted upon expiry of the initial 24-month lock-in.",MEDIUM_RISK
+"Quarterly earnings reports are filed within 45 days of each quarter-end.",MEDIUM_RISK
+"The court may award attorney's fees to the prevailing party in litigation.",HIGH_RISK
+"The indemnity obligation includes third-party claims arising from product defects.",HIGH_RISK
+"Interest penalties accrue daily on overdue tax obligations.",HIGH_RISK
+"The non-disclosure agreement prohibits disclosure for an indefinite period.",HIGH_RISK
+"Breach of the exclusivity agreement entitles the injured party to disgorgement.",HIGH_RISK
+"The convertible note automatically converts at a 20% discount upon a qualifying event.",HIGH_RISK
+"Employees terminated for cause shall forfeit all unvested equity compensation.",HIGH_RISK
+"The SPAC merger requires approval from 80% of public shareholders.",HIGH_RISK
+"Representations and warranties survive closing and are subject to indemnification.",HIGH_RISK
+"The governing law clause designates English courts as having exclusive jurisdiction.",HIGH_RISK
+"Community feedback sessions help shape the development roadmap.",LOW_RISK
+"The product team regularly reviews user analytics to improve features.",LOW_RISK
+"All communication should be directed to the designated project manager.",LOW_RISK
+"The support portal provides 24/7 access to help articles and FAQs.",LOW_RISK
+"Version history is maintained in the shared document repository.",LOW_RISK
+"Onboarding checklists guide new employees through their first 90 days.",LOW_RISK
+"The quarterly newsletter highlights company achievements and upcoming events.",LOW_RISK
+"Expense reports must be submitted within 30 days of incurring the expense.",LOW_RISK
+"The demo environment resets every weekend for testing purposes.",LOW_RISK
+"Staff are encouraged to take at least 10 days of annual leave.",LOW_RISK
+"The joint venture agreement defines profit-sharing ratios and governance structure.",MEDIUM_RISK
+"Technology transfer agreements may require regulatory approval in certain jurisdictions.",MEDIUM_RISK
+"The distribution agreement grants exclusive rights in specified territories for 5 years.",MEDIUM_RISK
+"Performance bonds may be required for contracts exceeding a certain threshold.",MEDIUM_RISK
+"Accounting standards require quarterly mark-to-market valuations of certain assets.",MEDIUM_RISK
+"The software escrow agreement ensures access to source code in the event of vendor failure.",MEDIUM_RISK
+"Invoices must reference the correct purchase order number to be processed.",MEDIUM_RISK
+"The service contract includes a right to benchmark pricing against market rates.",MEDIUM_RISK
+"All amendments must be in writing and signed by authorized representatives.",MEDIUM_RISK
+"The agreement permits the licensee to grant sublicenses with prior written approval.",MEDIUM_RISK
+"Rights to the underlying technology are retained by the original inventor.",HIGH_RISK
+"Any attempt to challenge the validity of this patent is a breach of the settlement.",HIGH_RISK
+"The earn-out provision links additional payments to post-closing revenue targets.",HIGH_RISK
+"Breach of the standstill agreement subjects the party to immediate injunctive relief.",HIGH_RISK
+"The non-solicitation clause prohibits hiring the other party's employees for 2 years.",HIGH_RISK
+"Failure to achieve minimum purchase commitments allows the supplier to terminate.",HIGH_RISK
+"The poison pill provision triggers upon any party acquiring more than 15% of shares.",HIGH_RISK
+"The ratchet mechanism adjusts investor ownership based on future funding valuations.",HIGH_RISK
+"The agreement includes a comprehensive IP assignment clause covering all inventions.",HIGH_RISK
+"Indemnification caps are set at the total contract value paid in the preceding 12 months.",HIGH_RISK
+"The company hosts an annual innovation hackathon open to all employees.",LOW_RISK
+"Coffee and snacks are provided free of charge in the office kitchen.",LOW_RISK
+"The IT help desk can be reached via email or phone for technical support.",LOW_RISK
+"New software features undergo usability testing before public release.",LOW_RISK
+"The team completed the diversity and inclusion training in March.",LOW_RISK
+"Project milestones are tracked using a shared project management tool.",LOW_RISK
+"The company participates in the local chamber of commerce events.",LOW_RISK
+"Refer-a-friend bonus programs are available for all active employees.",LOW_RISK
+"The quarterly goals are shared openly with the entire organization.",LOW_RISK
+"The employee resource group meets monthly to share experiences and support.",LOW_RISK

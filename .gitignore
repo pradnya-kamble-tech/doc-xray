@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.env
+venv/
+.venv/
+env/
+
+# Backend data (gitignored - large files)
+apps/api/data/uploads/
+apps/api/data/chroma/
+apps/api/data/sqlite/
+apps/api/data/risk_classifier.pkl
+
+# Node
+node_modules/
+.next/
+out/
+.vercel/
+
+# Misc
+.DS_Store
+*.log
+.idea/
+.vscode/
+!.env.example
