@@ -38,5 +38,68 @@ RAG (Retrieval-Augmented Generation)
 Gemini Explanation (Final Output)
 ```
 
-## Setup Instructions
+## Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/pradnya-kamble-tech/doc-xray.git
+   ```
+2. **Navigate to the project**
+   ```bash
+   cd doc-xray
+   ```
+3. **Create Python 3.11 virtual environment**
+   ```bash
+   cd apps/api
+   python -m venv venv
+   ```
+4. **Activate the virtual environment**
+   ```bash
+   .\venv\Scripts\activate
+   ```
+5. **Install backend dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+6. **Configure apps/api/.env**
+   Copy `.env.example` to `.env` and fill in your Gemini API Key.
+   ```env
+   LLM_PROVIDER=gemini
+   GEMINI_API_KEY=your_gemini_api_key_here
+   OPENAI_API_KEY=
+   ```
+   > **WARNING:** Do not commit your `.env` file. Only `.env.example` should be committed.
+
+7. **Train the ML risk classifier**
+   ```bash
+   python scripts/train_risk_classifier.py
+   ```
+8. **Start the FastAPI backend**
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
+   > You can verify the backend is running by checking the health URL:
+   > http://localhost:8000/api/health
+   > It should return exactly: `{"status":"ok"}`
+
+9. **Open a second terminal** (for the frontend)
+   ```bash
+   cd apps/web
+   ```
+10. **Start the Next.js frontend**
+    ```bash
+    npm install
+    npm run dev
+    ```
+11. **Open http://localhost:3000** in your browser.
+
+## AI/ML Pipeline
+
+- **spaCy** → NER and NLP feature engineering.
+- **TF-IDF + SGDClassifier** → Traditional ML risk classification pipeline.
+- **Sentence Transformers** → Dense embeddings (`all-MiniLM-L6-v2`).
+- **ChromaDB** → Local vector storage and fast semantic search.
+- **RAG** → Retrieves relevant document context dynamically.
+- **Gemini** → Grounded, hallucination-free explanation generation.
+
 Please refer to `PROJECT_STATUS.md` and `ARCHITECTURE.md` for extended documentation on the system logic and local module structure.
