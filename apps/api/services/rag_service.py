@@ -145,7 +145,7 @@ Please provide your JSON analysis."""
     except Exception as e:
         logger.error(f"LLM call failed in RAG explain: {e}")
         return ExplainOut(
-            explanation=f"LLM service unavailable: {str(e)}. Check your API key configuration.",
+            explanation="Summary temporarily unavailable — please try again",
             simplified_explanation="AI explanation service is currently unavailable.",
             risk_level="LOW_RISK",
             confidence=None,

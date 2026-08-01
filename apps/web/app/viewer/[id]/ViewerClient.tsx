@@ -215,7 +215,7 @@ export function ViewerClient({ docId }: { docId: string }) {
                     <h3 className="font-semibold mb-4 tracking-tight">Toggle Highlights</h3>
                     <div className="flex flex-wrap gap-2">
                         {[
-                            { type: 'RISK', c: 'risk', l: `Risks (${analysis.risk_counts?.HIGH_RISK || 0})` },
+                            { type: 'RISK', c: 'risk', l: `Risks (${(analysis.risk_counts?.HIGH_RISK || 0) + (analysis.risk_counts?.MEDIUM_RISK || 0)})` },
                             { type: 'ENTITY', c: 'entity', l: `Entities (${Object.keys(analysis.entity_counts).length})` },
                             { type: 'KEYWORD', c: 'keyword', l: 'Keywords' },
                             { type: 'JARGON', c: 'jargon', l: 'Jargon' },

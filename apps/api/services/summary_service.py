@@ -61,7 +61,7 @@ Please provide a concise summary of this document."""
         summary_text = llm.complete(SUMMARY_SYSTEM_PROMPT, user_prompt)
     except Exception as e:
         logger.error(f"Summary generation failed for doc {doc_id}: {e}")
-        summary_text = f"Summary unavailable: {str(e)}"
+        summary_text = "Summary temporarily unavailable — please try again"
 
     # Store in DB
     existing = await db.execute(

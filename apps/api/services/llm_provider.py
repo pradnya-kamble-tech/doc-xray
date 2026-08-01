@@ -39,7 +39,7 @@ class LLMProvider(ABC):
 class GeminiProvider(LLMProvider):
     """Google Gemini API provider."""
 
-    MODEL = "gemini-1.5-flash"
+    MODELS = ["gemini-3.5-flash", "gemini-flash-latest"]
 
     def __init__(self):
         if not settings.gemini_api_key:
@@ -49,8 +49,26 @@ class GeminiProvider(LLMProvider):
             )
         import google.generativeai as genai
         genai.configure(api_key=settings.gemini_api_key)
+        
+        raw_models = []
+        try:
+            raw_models = [m.name.replace("models/", "") for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            logger.info(f"Available Gemini models: {raw_models}")
+        except Exception as e:
+            logger.warning(f"Could not list Gemini models: {e}")
+
+        # Choose the first model in our preferred list that is available, or default to the first one
+        selected_model = self.MODELS[0]
+        if raw_models:
+            for m in self.MODELS:
+                if m in raw_models or f"models/{m}" in raw_models:
+                    selected_model = m
+                    break
+        
+        logger.info(f"Selected Gemini model: {selected_model}")
+        
         self._model = genai.GenerativeModel(
-            model_name=self.MODEL,
+            model_name=selected_model,
             safety_settings=[
                 {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
                 {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
