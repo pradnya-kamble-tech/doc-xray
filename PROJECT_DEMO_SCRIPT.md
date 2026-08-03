@@ -6,6 +6,7 @@ This script provides a 5-minute flow for presenting the Doc-XRay platform.
 *   **The Problem:** Legal and financial analysts spend countless hours reading verbose documents, trying to identify risk, jargons, and specific entities.
 *   **The Solution:** Doc-XRay, an AI-powered visual document intelligence platform. It automates reading, highlights key insights deterministically, classifies risk via Machine Learning, and allows semantic communication with the document using RAG.
 
+
 ## 2. Platform Overview (30s)
 *   Show the main landing page.
 *   Highlight the drag-and-drop feature and supported formats (PDF/DOCX).
