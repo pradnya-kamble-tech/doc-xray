@@ -46,13 +46,18 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
-    
+
     /* Highlight Palette — distinct, vibrant, premium */
-    --hl-risk:    0 84% 60%;      /* 🔴 Red — high/medium risk */
-    --hl-entity:  217 91% 60%;    /* 🔵 Blue — named entities */
-    --hl-keyword: 38 92% 50%;     /* 🟡 Amber — keywords */
-    --hl-jargon:  271 81% 64%;    /* 🟣 Purple — jargon */
-    --hl-concept: 175 70% 45%;    /* 🟢 Teal — concepts */
+    --hl-risk: 0 84% 60%;
+    /* 🔴 Red — high/medium risk */
+    --hl-entity: 217 91% 60%;
+    /* 🔵 Blue — named entities */
+    --hl-keyword: 38 92% 50%;
+    /* 🟡 Amber — keywords */
+    --hl-jargon: 271 81% 64%;
+    /* 🟣 Purple — jargon */
+    --hl-concept: 175 70% 45%;
+    /* 🟢 Teal — concepts */
   }
 }
 
@@ -60,6 +65,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
   }
@@ -69,6 +75,7 @@
 .glass {
   @apply bg-background/60 backdrop-blur-md border border-white/10;
 }
+
 .glass-panel {
   @apply bg-[#0f0f11]/80 backdrop-blur-xl border-l border-white/10;
 }
@@ -81,6 +88,7 @@ mark.hl-risk {
   border-radius: 3px;
   padding: 1px 3px;
 }
+
 mark.hl-entity {
   background-color: hsl(var(--hl-entity) / 0.18);
   color: hsl(var(--hl-entity));
@@ -88,6 +96,7 @@ mark.hl-entity {
   border-radius: 3px;
   padding: 1px 3px;
 }
+
 mark.hl-keyword {
   background-color: hsl(var(--hl-keyword) / 0.18);
   color: hsl(var(--hl-keyword));
@@ -95,6 +104,7 @@ mark.hl-keyword {
   border-radius: 3px;
   padding: 1px 3px;
 }
+
 mark.hl-jargon {
   background-color: hsl(var(--hl-jargon) / 0.18);
   color: hsl(var(--hl-jargon));
@@ -102,6 +112,7 @@ mark.hl-jargon {
   border-radius: 3px;
   padding: 1px 3px;
 }
+
 mark.hl-concept {
   background-color: hsl(var(--hl-concept) / 0.18);
   color: hsl(var(--hl-concept));
@@ -122,26 +133,38 @@ mark:hover {
 
 /* Jump-to-source flash animation */
 @keyframes chunk-flash {
-  0%, 100% { box-shadow: none; }
-  25%, 75% { box-shadow: 0 0 0 3px hsl(217 91% 60% / 0.7); }
+
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  25%,
+  75% {
+    box-shadow: 0 0 0 3px hsl(217 91% 60% / 0.7);
+  }
 }
+
 .chunk-flash {
   animation: chunk-flash 1s ease 2;
   border-radius: 8px;
-
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted));
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
