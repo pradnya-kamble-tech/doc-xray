@@ -81,3 +81,50 @@ Please provide a concise summary of this document."""
 
     await db.commit()
     return summary_text
+
+
+ACTION_ITEMS_SYSTEM_PROMPT = """You are a document analysis assistant.
+Given the document excerpts below, extract a concise list of important things the reader should know or act on.
+
+RULES:
+1. Use only information from the provided excerpts.
+2. Be concise — 3 to 7 bullet items maximum.
+3. Each item must be one short sentence (plain language, no jargon).
+4. Start each item with a relevant emoji (✓, ⚠, 📄, 💰, 📅, 👤, 🔴, etc.)
+5. Do NOT include legal interpretations not stated in the document.
+
+RESPONSE FORMAT (JSON only, no markdown):
+{"items": ["✓ Payment of ₹29,120 received", "📅 Exam: December 2026", ...]}"""
+
+
+async def generate_action_items(doc_id: str, db: AsyncSession) -> list[str]:
+    """
+    Select top chunks and generate a bullet list of actionable insights.
+    Returns list of short strings.
+    """
+    result = await db.execute(
+        select(Chunk)
+        .where(Chunk.document_id == doc_id)
+        .order_by(Chunk.tfidf_score.desc())
+        .limit(8)
+    )
+    chunks = result.scalars().all()
+    if not chunks:
+        return []
+
+    context_parts = [f"[Excerpt {i} — Page {c.page_num}]:\n{c.text}" for i, c in enumerate(chunks, 1)]
+    context = "\n\n".join(context_parts)
+    user_prompt = f"Document Excerpts:\n{context}\n\nPlease provide the action items JSON."
+
+    try:
+        import json, re
+        llm = get_llm_provider()
+        raw = llm.complete(ACTION_ITEMS_SYSTEM_PROMPT, user_prompt)
+        cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("`").strip()
+        data = json.loads(cleaned)
+        items = data.get("items", [])
+        return [str(i) for i in items if i]
+    except Exception as e:
+        logger.error(f"Action items generation failed for doc {doc_id}: {e}")
+        return []
+

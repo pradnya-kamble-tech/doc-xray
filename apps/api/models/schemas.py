@@ -78,6 +78,7 @@ class AnalysisOut(BaseModel):
     status: str
     page_count: int
     summary: Optional[str] = None
+    action_items: list[str] = []
     keywords: list[str] = []
     annotations: list[AnnotationOut] = []
     chunks: list[ChunkOut] = []

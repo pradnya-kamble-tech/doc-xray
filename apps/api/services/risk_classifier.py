@@ -64,12 +64,47 @@ HIGH_RISK_PATTERNS = [
 
 _COMPILED_PATTERNS = [re.compile(p, re.IGNORECASE) for p in HIGH_RISK_PATTERNS]
 
+# ──────────────────────────────────────────────
+# Heuristic: benign document type detection
+# Receipts, invoices, fee acknowledgements → LOW_RISK
+# (Runs BEFORE ML and rule override)
+# ──────────────────────────────────────────────
+BENIGN_DOC_PATTERNS = [
+    r"\bfee\s+receipt\b",
+    r"\bpayment\s+receipt\b",
+    r"\bpayment\s+successful\b",
+    r"\bpayment\s+acknowledgement\b",
+    r"\bfee\s+acknowledgement\b",
+    r"\btransaction\s+id\b",
+    r"\btransaction\s+no\b",
+    r"\breceived\s+with\s+thanks\b",
+    r"\bexam\s+fee\b",
+    r"\bcollege\s+fee\b",
+    r"\btuition\s+fee\b",
+    r"\badmission\s+fee\b",
+    r"\binvoice\s+no\b",
+    r"\binvoice\s+number\b",
+    r"\breceipt\s+no\b",
+    r"\breceipt\s+number\b",
+    r"\bpaid\s+amount\b",
+    r"\bamount\s+paid\b",
+    r"\bthank\s+you\s+for\s+your\s+payment\b",
+]
+
+_COMPILED_BENIGN = [re.compile(p, re.IGNORECASE) for p in BENIGN_DOC_PATTERNS]
+
+
+def _is_benign_document(text: str) -> bool:
+    """Return True if text looks like a receipt/invoice/acknowledgement."""
+    hits = sum(1 for p in _COMPILED_BENIGN if p.search(text))
+    return hits >= 2  # require at least 2 matches to be safe
+
 
 @dataclass
 class RiskResult:
     risk_level: str         # LOW_RISK | MEDIUM_RISK | HIGH_RISK
     risk_score: float       # 0.0–1.0 (from predict_proba for ML; 1.0 for rule override)
-    prediction_source: str  # "ml" | "rule_override"
+    prediction_source: str  # "ml" | "rule_override" | "heuristic"
 
 
 class RiskClassifier:
@@ -109,9 +144,20 @@ class RiskClassifier:
         """
         Classify text into LOW_RISK | MEDIUM_RISK | HIGH_RISK.
 
-        Rule override takes priority: if a high-risk phrase is found,
-        the ML prediction is overridden regardless of its confidence.
+        Priority:
+        1. Heuristic: benign doc type (receipt/invoice) → always LOW_RISK
+        2. Rule override: explicit high-risk legal phrases
+        3. ML prediction (TF-IDF + SGD)
+        4. Keyword fallback
         """
+        # Step 0: Heuristic override — benign document types
+        if _is_benign_document(text):
+            return RiskResult(
+                risk_level="LOW_RISK",
+                risk_score=0.05,
+                prediction_source="heuristic",
+            )
+
         # Step 1: Rule-based override (deterministic, not ML)
         if self._rule_override(text):
             return RiskResult(

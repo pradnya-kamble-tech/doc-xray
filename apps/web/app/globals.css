@@ -47,12 +47,12 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
     
-    /* Highlight Palette */
-    --hl-risk: 0 84% 60%;
-    --hl-entity: 217 91% 60%;
-    --hl-keyword: 45 93% 47%;
-    --hl-jargon: 175 70% 41%;
-    --hl-concept: 262 83% 58%;
+    /* Highlight Palette — distinct, vibrant, premium */
+    --hl-risk:    0 84% 60%;      /* 🔴 Red — high/medium risk */
+    --hl-entity:  217 91% 60%;    /* 🔵 Blue — named entities */
+    --hl-keyword: 38 92% 50%;     /* 🟡 Amber — keywords */
+    --hl-jargon:  271 81% 64%;    /* 🟣 Purple — jargon */
+    --hl-concept: 175 70% 45%;    /* 🟢 Teal — concepts */
   }
 }
 
@@ -75,42 +75,60 @@
 
 /* Highlights */
 mark.hl-risk {
-  background-color: hsl(var(--hl-risk) / 0.2);
+  background-color: hsl(var(--hl-risk) / 0.18);
   color: hsl(var(--hl-risk));
-  border-bottom: 2px solid hsl(var(--hl-risk) / 0.5);
+  border-bottom: 2px solid hsl(var(--hl-risk) / 0.6);
+  border-radius: 3px;
+  padding: 1px 3px;
 }
 mark.hl-entity {
-  background-color: hsl(var(--hl-entity) / 0.2);
+  background-color: hsl(var(--hl-entity) / 0.18);
   color: hsl(var(--hl-entity));
-  border-bottom: 2px solid hsl(var(--hl-entity) / 0.5);
+  border-bottom: 2px solid hsl(var(--hl-entity) / 0.6);
+  border-radius: 3px;
+  padding: 1px 3px;
 }
 mark.hl-keyword {
-  background-color: hsl(var(--hl-keyword) / 0.2);
+  background-color: hsl(var(--hl-keyword) / 0.18);
   color: hsl(var(--hl-keyword));
-  border-bottom: 2px solid hsl(var(--hl-keyword) / 0.5);
+  border-bottom: 2px solid hsl(var(--hl-keyword) / 0.6);
+  border-radius: 3px;
+  padding: 1px 3px;
 }
 mark.hl-jargon {
-  background-color: hsl(var(--hl-jargon) / 0.2);
+  background-color: hsl(var(--hl-jargon) / 0.18);
   color: hsl(var(--hl-jargon));
-  border-bottom: 2px solid hsl(var(--hl-jargon) / 0.5);
+  border-bottom: 2px solid hsl(var(--hl-jargon) / 0.6);
+  border-radius: 3px;
+  padding: 1px 3px;
 }
 mark.hl-concept {
-  background-color: hsl(var(--hl-concept) / 0.2);
+  background-color: hsl(var(--hl-concept) / 0.18);
   color: hsl(var(--hl-concept));
-  border-bottom: 2px solid hsl(var(--hl-concept) / 0.5);
+  border-bottom: 2px solid hsl(var(--hl-concept) / 0.6);
+  border-radius: 3px;
+  padding: 1px 3px;
 }
 
 mark {
-  border-radius: 4px;
-  padding: 0 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 mark:hover {
-  filter: brightness(1.2);
-  box-shadow: 0 0 10px currentColor;
+  filter: brightness(1.3);
+  box-shadow: 0 0 8px currentColor;
 }
+
+/* Jump-to-source flash animation */
+@keyframes chunk-flash {
+  0%, 100% { box-shadow: none; }
+  25%, 75% { box-shadow: 0 0 0 3px hsl(217 91% 60% / 0.7); }
+}
+.chunk-flash {
+  animation: chunk-flash 1s ease 2;
+  border-radius: 8px;
+
 
 /* Scrollbar */
 ::-webkit-scrollbar {

@@ -20,6 +20,7 @@ from services.analysis_pipeline import (
     subscribe_to_status,
     unsubscribe_from_status,
 )
+from services.summary_service import generate_action_items
 
 logger = logging.getLogger(__name__)
 
@@ -69,11 +70,20 @@ async def get_analysis(doc_id: str, db: AsyncSession = Depends(get_db)):
         level = chunk.risk_level or "LOW_RISK"
         risk_counts[level] = risk_counts.get(level, 0) + 1
 
+    # Compute action items (non-blocking; best effort)
+    action_items: list[str] = []
+    if doc.status == "DONE":
+        try:
+            action_items = await generate_action_items(doc_id, db)
+        except Exception:
+            pass
+
     return AnalysisOut(
         document_id=doc_id,
         status=doc.status,
         page_count=doc.page_count or 0,
         summary=summary_row.text if summary_row else None,
+        action_items=action_items,
         keywords=keywords,
         annotations=[
             AnnotationOut(
