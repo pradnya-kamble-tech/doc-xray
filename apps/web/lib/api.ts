@@ -49,6 +49,7 @@ export interface AnalysisResult {
     status: string;
     page_count: number;
     summary?: string;
+    action_items: string[];
     keywords: string[];
     annotations: Annotation[];
     chunks: Chunk[];
