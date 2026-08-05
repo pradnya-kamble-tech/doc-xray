@@ -23,6 +23,7 @@ from models.schemas import ExplainOut, SourceChunk
 from services.embedding_service import get_embedding_service
 from services.vector_store import get_vector_store, ScoredChunk
 from services.llm_provider import get_llm_provider
+from models.schemas import ExplainOut, SourceChunk, ChatSourceOut, ChatResponse
 
 logger = logging.getLogger(__name__)
 
@@ -180,3 +181,78 @@ Please provide your JSON analysis."""
         source_pages=source_pages,
         provider=llm.provider_name,
     )
+
+
+CHAT_SYSTEM_PROMPT = """You are Doc-XRay, a helpful assistant answering questions strictly based on the provided document context.
+
+RULES:
+1. Formulate your answer ONLY from the provided document context.
+2. If the answer cannot be found in the context, you must respond EXACTLY with: "I couldn't find this information in the uploaded document." Do not add extra fluff.
+3. Do not formulate answers from your prior training or hallucinate information.
+4. Keep the answer clear and professional, addressing the user's question directly.
+
+RESPONSE FORMAT (JSON only, no markdown code blocks):
+{
+  "answer": "Your detailed answer based on context..."
+}"""
+
+async def chat_with_document(doc_id: str, message: str) -> ChatResponse:
+    embedding_svc = get_embedding_service()
+    vector_store = get_vector_store()
+
+    # Step 1: Embed the user's message
+    query_embedding = embedding_svc.encode_single(message)
+
+    # Step 2: Retrieve top-5 relevant chunks
+    similar_chunks: list[ScoredChunk] = vector_store.query(
+        doc_id=doc_id,
+        query_embedding=query_embedding,
+        top_k=5,
+    )
+
+    if not similar_chunks:
+        return ChatResponse(
+            answer="I couldn't find this information in the uploaded document.",
+            sources=[]
+        )
+
+    # Step 3: Build context block
+    context_lines = []
+    for i, chunk in enumerate(similar_chunks, 1):
+        context_lines.append(f"[Context {i} — Page {chunk.page_num}]:\n{chunk.text}")
+    context_block = "\n\n".join(context_lines)
+
+    # Step 4: Build user prompt
+    user_prompt = f"""Document Context:
+{context_block}
+
+User Question:
+"{message}"
+
+Please answer the question based purely on the given context. Return only valid JSON."""
+
+    # Step 5: Call LLM
+    llm = get_llm_provider()
+    try:
+        raw_response = llm.complete(CHAT_SYSTEM_PROMPT, user_prompt)
+        parsed = _parse_llm_response(raw_response)
+        # We assume the parsed logic defaults to returning raw text in 'explanation' if it fails structure, 
+        # but our parser expects 'explanation' key. If it expects 'answer', we extract it or fallback.
+        answer = parsed.get("answer", parsed.get("explanation", raw_response))
+    except Exception as e:
+        logger.error(f"LLM call failed in RAG chat: {e}")
+        answer = "I couldn't find this information in the uploaded document."
+
+    if "I couldn't find this information" in answer or "The provided context does not contain sufficient" in answer:
+        answer = "I couldn't find this information in the uploaded document."
+        sources = []
+    else:
+        sources = [
+            ChatSourceOut(
+                page=c.page_num,
+                chunk_id=c.chunk_id,
+                similarity=c.similarity_score
+            ) for c in similar_chunks
+        ]
+
+    return ChatResponse(answer=answer, sources=sources)

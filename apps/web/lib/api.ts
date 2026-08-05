@@ -94,6 +94,18 @@ export interface StatusEvent {
     message: string;
 }
 
+export interface ChatSource {
+    page: number;
+    chunk_id: string;
+    similarity: number;
+}
+
+export interface ChatResponse {
+    answer: string;
+    sources: ChatSource[];
+}
+
+
 // ── Helper ─────────────────────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -183,3 +195,16 @@ export async function explainSpan(
 export async function checkHealth(): Promise<{ status: string }> {
     return apiFetch('/api/health');
 }
+
+// ── Chat ────────────────────────────────────────────────────────────────
+
+export async function chatWithDocument(
+    docId: string,
+    message: string
+): Promise<ChatResponse> {
+    return apiFetch(`/api/chat/${docId}`, {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+    });
+}
+

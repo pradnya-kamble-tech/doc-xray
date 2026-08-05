@@ -76,12 +76,13 @@ app.add_middleware(
 )
 
 # Mount routers
-from routers import documents, analysis, search, explain
+from routers import documents, analysis, search, explain, chat
 
 app.include_router(documents.router)
 app.include_router(analysis.router)
 app.include_router(search.router)
 app.include_router(explain.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health", tags=["health"])

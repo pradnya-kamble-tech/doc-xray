@@ -142,3 +142,22 @@ class ExplainOut(BaseModel):
     source_chunks: list[SourceChunk] = []
     source_pages: list[int] = []
     provider: str  # which LLM provider was used
+
+
+# ──────────────────────────────────────────────
+# Chat schemas
+# ──────────────────────────────────────────────
+
+class ChatRequest(BaseModel):
+    message: str
+
+
+class ChatSourceOut(BaseModel):
+    page: int
+    chunk_id: str
+    similarity: float
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: list[ChatSourceOut]
