@@ -1,0 +1,17 @@
+﻿bbbbdb0 feat(ui): full viewer redesign - 5-tab panel, risk score bar, jump-to-source, action items, metadata cards, better highlights
+2b09042 feat: initialize global styles with Tailwind, custom highlight palette, and glassmorphism utilities
+7ed6c3e feat: implement analysis API endpoints, risk classification service, and SSE status streaming for document processing
+75beb82 feat(chat): add AI document chat interface
+ apps/api/data/docxray.db                  |   0
+ apps/api/main.py                          |   3 +-
+ apps/api/models/schemas.py                |  20 ++
+ apps/api/routers/analysis.py              |  10 +
+ apps/api/routers/chat.py                  |  34 ++
+ apps/api/services/rag_service.py          |  76 +++++
+ apps/api/services/risk_classifier.py      |  52 ++-
+ apps/api/services/summary_service.py      |  47 +++
+ apps/api/test_chat_endpoint.py            |  38 +++
+ apps/web/app/globals.css                  |  83 +++--
+ apps/web/app/viewer/[id]/ViewerClient.tsx | 526 ++++++++++++++++++++----------
+ apps/web/lib/api.ts                       |  26 ++
+ 12 files changed, 719 insertions(+), 196 deletions(-)
