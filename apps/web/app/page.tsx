@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useDropzone } from "react-dropzone"
 import { motion, AnimatePresence } from "framer-motion"
 import { uploadDocument } from "@/lib/api"
@@ -114,6 +115,18 @@ export default function Home() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 flex justify-center w-full"
+        >
+          <Link href="/compare" className="text-sm font-medium text-white/70 hover:text-white glass px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5" /><path d="M8 3H3v5" /><path d="M12 22v-8" /><path d="M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8" /></svg>
+            Compare Documents
+          </Link>
+        </motion.div>
       </motion.div>
     </div>
   )

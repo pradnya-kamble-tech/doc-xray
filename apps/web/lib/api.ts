@@ -106,6 +106,21 @@ export interface ChatResponse {
     sources: ChatSource[];
 }
 
+export interface ChangedClause {
+    clause: string;
+    diff: string;
+    type: string;
+}
+
+export interface CompareResponse {
+    similarity_score: number;
+    changed_clauses: ChangedClause[];
+    added_clauses: string[];
+    removed_clauses: string[];
+    risk_difference: string;
+    ai_suggestions: string[];
+}
+
 
 // ── Helper ─────────────────────────────────────────────────────────────
 
@@ -207,5 +222,14 @@ export async function chatWithDocument(
         method: 'POST',
         body: JSON.stringify({ message }),
     });
+}
+
+// ── Compare ─────────────────────────────────────────────────────────────
+
+export async function compareDocuments(
+    doc1Id: string,
+    doc2Id: string
+): Promise<CompareResponse> {
+    return apiFetch(`/api/compare/${doc1Id}/${doc2Id}`);
 }
 
