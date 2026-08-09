@@ -106,19 +106,25 @@ export interface ChatResponse {
     sources: ChatSource[];
 }
 
-export interface ChangedClause {
+export interface CompareDifference {
+    type: 'ADDED' | 'REMOVED' | 'MODIFIED';
     clause: string;
-    diff: string;
-    type: string;
+    description: string;
+    sources: { doc: 'A' | 'B'; page: number; chunk_id: string }[];
+}
+
+export interface DocumentRisk {
+    level: string;
+    score: number;
 }
 
 export interface CompareResponse {
     similarity_score: number;
-    changed_clauses: ChangedClause[];
-    added_clauses: string[];
-    removed_clauses: string[];
-    risk_difference: string;
+    doc_a_risk: DocumentRisk;
+    doc_b_risk: DocumentRisk;
+    differences: CompareDifference[];
     ai_suggestions: string[];
+    error_msg: string | null;
 }
 
 
