@@ -1,6 +1,7 @@
 """
 Compare service — compares two documents using LLM.
-Retrieves top chunks from Doc A, finds semantic matches in Doc B.
+Retrieves top chunks from Doc A, finds semantic matches in Doc B,
+calculates real vector-based similarity, and outputs structured differences.
 """
 from __future__ import annotations
 import logging
@@ -23,29 +24,35 @@ Your task is to compare them and produce a structured JSON report.
 Be highly analytical, concise, and accurate. Do not hallucinate.
 
 Focus on:
-1. Identifying if chunks are exactly the same, slightly modified, heavily modified, or novel.
-2. Summarizing the changed clauses, added clauses, and removed clauses.
-3. Quantifying an overall semantic similarity score (0 to 100).
-4. Extracting any differences in risk or obligations.
-5. Providing specific AI suggestions or alerts for the user.
+1. Categorizing diffs into ADDED, REMOVED, or MODIFIED.
+2. Providing a clear short title/clause name.
+3. Describing the specific difference.
+4. Keeping track of the source chunk_id and page for each document referenced in that clause.
 
-OUTPUT FORMAT (JSON only! No markdown blocks, no python blocks):
+OUTPUT FORMAT (JSON only! No markdown blocks):
 {
-  "similarity_score": 85,
-  "changed_clauses": [
+  "differences": [
     {
+      "type": "MODIFIED",
       "clause": "Payment Terms",
-      "diff": "Document A requires payment in 30 days, B requires 15 days.",
-      "type": "MODIFICATION"
+      "description": "Document A requires 30 days, B requires 15 days.",
+      "sources": [
+        {"doc": "A", "page": 1, "chunk_id": "abc-123"},
+        {"doc": "B", "page": 1, "chunk_id": "xyz-987"}
+      ]
+    },
+    {
+      "type": "ADDED",
+      "clause": "Confidentiality",
+      "description": "Document B added a new 5-year NDA clause.",
+      "sources": [
+         {"doc": "B", "page": 2, "chunk_id": "bbb-444"}
+      ]
     }
   ],
-  "added_clauses": ["string clause title"],
-  "removed_clauses": ["string clause title"],
-  "risk_difference": "Document B has a higher risk profile due to stricter penalties.",
-  "ai_suggestions": ["Review the shortened payment window."]
+  "ai_suggestions": ["Review the shortened payment window.", "Ensure NDA aligns with standard policy."]
 }
 """
-
 
 async def compare_documents(doc1_id: str, doc2_id: str, db: AsyncSession) -> dict:
     doc1 = (await db.execute(select(Document).where(Document.id == doc1_id))).scalar_one_or_none()
@@ -54,73 +61,108 @@ async def compare_documents(doc1_id: str, doc2_id: str, db: AsyncSession) -> dic
     if not doc1 or not doc2:
         return _fallback_response("One or both documents not found.")
 
-    result1 = await db.execute(
-        select(Chunk)
-        .where(Chunk.document_id == doc1_id)
-        .order_by(Chunk.tfidf_score.desc())
-        .limit(8)
-    )
-    chunks_a = result1.scalars().all()
+    # 1. Fetch chunks for both to assess risk profiles
+    chunks_1 = (await db.execute(select(Chunk).where(Chunk.document_id == doc1_id))).scalars().all()
+    chunks_2 = (await db.execute(select(Chunk).where(Chunk.document_id == doc2_id))).scalars().all()
 
-    if not chunks_a:
+    if not chunks_1:
         return _fallback_response("No content available in Document A to compare.")
+        
+    def aggregate_risk(chunks: list[Chunk]) -> dict:
+        if not chunks:
+            return {"level": "UNKNOWN", "score": 0.0}
+        max_score = max(c.risk_score for c in chunks)
+        # Determine highest risk level
+        levels = [c.risk_level for c in chunks]
+        if "HIGH_RISK" in levels:
+            overall = "HIGH_RISK"
+        elif "MEDIUM_RISK" in levels:
+            overall = "MEDIUM_RISK"
+        else:
+            overall = "LOW_RISK"
+        return {"level": overall, "score": max_score}
+
+    doc_a_risk = aggregate_risk(chunks_1)
+    doc_b_risk = aggregate_risk(chunks_2)
+    
+    # 2. Select Top chunks from A for semantic comparison
+    # Choose top 10 by tfidf_score or if very small, all chunks
+    sorted_a = sorted(chunks_1, key=lambda c: c.tfidf_score or 0.0, reverse=True)[:10]
 
     vector_store = get_vector_store()
     emb_service = get_embedding_service()
 
     context_parts = []
+    total_similarity = 0.0
+    matched_count = 0
     
-    for i, c_a in enumerate(chunks_a):
+    for i, c_a in enumerate(sorted_a):
         emb_a = emb_service.encode_single(c_a.text)
         b_chunks = vector_store.query(doc2_id, emb_a, top_k=1)
         
-        risk_context_a = f"[Risk: {c_a.risk_level} ({c_a.risk_score:.2f})]"
         text_a = c_a.text
-        
         text_b = "No corresponding matching chunk found in Document B."
-        risk_context_b = "[No match]"
+        match_chunk_id = "none"
+        match_page_num = 0
         
         if b_chunks:
             match = b_chunks[0]
-            if match.similarity_score > 0.4:
+            # Accumulate vector based similarity score (cosine based, 0 to 1)
+            total_similarity += match.similarity_score
+            matched_count += 1
+            
+            # If similarity is decently high it's a structural match
+            if match.similarity_score > 0.3:
                 text_b = match.text
-                risk_context_b = f"[Risk: {match.risk_level} ({match.risk_score:.2f})]"
+                match_chunk_id = match.chunk_id
+                match_page_num = match.page_num
                 
         context_parts.append(
             f"--- MATCH {i+1} ---\n"
-            f"Document A {risk_context_a}:\n{text_a}\n\n"
-            f"Document B {risk_context_b}:\n{text_b}\n"
+            f"Document A [chunk_id: {c_a.id}, page: {c_a.page_num}]:\n{text_a}\n\n"
+            f"Document B [chunk_id: {match_chunk_id}, page: {match_page_num}]:\n{text_b}\n"
         )
         
     context = "\n".join(context_parts)
     
+    avg_similarity = (total_similarity / matched_count) if matched_count > 0 else 0.0
+    real_similarity_score = round(avg_similarity * 100)
+    
     try:
-        user_prompt = f"Matched Excerpts:\n{context}\n\nPlease provide the comparison JSON."
+        user_prompt = f"Matched Excerpts:\n{context}\n\nPlease provide the JSON diff."
         llm = get_llm_provider()
         raw = llm.complete(COMPARE_SYSTEM_PROMPT, user_prompt)
         
-        cleaned = re.sub(r"```(json)?\s*", "", raw).strip().rstrip("`").strip()
+        cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip().rstrip("`").strip()
         data = json.loads(cleaned)
         
+        differences = data.get("differences", [])
+        ai_suggestions = data.get("ai_suggestions", [])
+        
         return {
-            "similarity_score": data.get("similarity_score", 0),
-            "changed_clauses": data.get("changed_clauses", []),
-            "added_clauses": data.get("added_clauses", []),
-            "removed_clauses": data.get("removed_clauses", []),
-            "risk_difference": data.get("risk_difference", "No significant risk difference found."),
-            "ai_suggestions": data.get("ai_suggestions", [])
+            "similarity_score": real_similarity_score,
+            "doc_a_risk": doc_a_risk,
+            "doc_b_risk": doc_b_risk,
+            "differences": differences,
+            "ai_suggestions": ai_suggestions,
+            "error_msg": None
         }
     except Exception as e:
         logger.error(f"Comparison generation failed for {doc1_id} vs {doc2_id}: {e}")
-        return _fallback_response(str(e))
+        fallback = _fallback_response(f"Generation failed: {str(e)}")
+        # Still return calculated similarity & risks
+        fallback["similarity_score"] = real_similarity_score
+        fallback["doc_a_risk"] = doc_a_risk
+        fallback["doc_b_risk"] = doc_b_risk
+        return fallback
 
 
 def _fallback_response(reason: str = "Comparison temporarily unavailable.") -> dict:
     return {
         "similarity_score": 0,
-        "changed_clauses": [],
-        "added_clauses": [],
-        "removed_clauses": [],
-        "risk_difference": reason,
-        "ai_suggestions": []
+        "doc_a_risk": {"level": "UNKNOWN", "score": 0.0},
+        "doc_b_risk": {"level": "UNKNOWN", "score": 0.0},
+        "differences": [],
+        "ai_suggestions": [],
+        "error_msg": reason
     }
