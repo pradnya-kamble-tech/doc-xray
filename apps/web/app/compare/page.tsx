@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { listDocuments, compareDocuments, Document, CompareResponse } from "@/lib/api"
+import { listDocuments, compareDocuments, Document, CompareResponse, CompareDifference, DocumentRisk } from "@/lib/api"
 import { Spinner } from "@/components/ui/spinner"
 
 export default function ComparePage() {
@@ -19,7 +19,6 @@ export default function ComparePage() {
         async function loadDocs() {
             try {
                 const res = await listDocuments()
-                // Filter out non-DONE documents to only show processed ones
                 const validDocs = res.documents.filter(d => d.status === "DONE" || d.status === "PENDING")
                 setDocuments(validDocs)
 
@@ -49,7 +48,11 @@ export default function ComparePage() {
 
         try {
             const res = await compareDocuments(doc1Id, doc2Id)
-            setResult(res)
+            if (res.error_msg) {
+                setError(res.error_msg)
+            } else {
+                setResult(res)
+            }
         } catch (err: any) {
             setError(err.message || "Failed to compare documents.")
         } finally {
@@ -57,9 +60,58 @@ export default function ComparePage() {
         }
     }
 
+    const renderRisk = (risk: DocumentRisk, title: string) => {
+        const isHigh = risk.level === 'HIGH_RISK';
+        const isMedium = risk.level === 'MEDIUM_RISK';
+        return (
+            <div className={`p-4 rounded-xl border ${isHigh ? 'border-red-500/30 bg-red-500/10' : isMedium ? 'border-yellow-500/30 bg-yellow-500/10' : 'border-green-500/30 bg-green-500/10'}`}>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-1">{title} Risk</h4>
+                <div className="flex items-center justify-between">
+                    <span className={`font-bold ${isHigh ? 'text-red-400' : isMedium ? 'text-yellow-400' : 'text-green-400'}`}>{risk.level.replace('_', ' ')}</span>
+                    <span className="text-sm font-medium opacity-80">{risk.score.toFixed(2)}</span>
+                </div>
+            </div>
+        )
+    }
+
+    const getDocId = (docLabel: 'A' | 'B') => docLabel === 'A' ? doc1Id : doc2Id;
+
+    const renderDiffSection = (diffs: CompareDifference[], type: string, color: string) => {
+        const filtered = diffs.filter(d => d.type === type);
+        if (filtered.length === 0) return null;
+
+        return (
+            <div className={`glass p-6 rounded-2xl border border-${color}-500/20 bg-${color}-500/5 mb-6`}>
+                <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 text-${color}-400`}>
+                    {type === 'ADDED' ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg> : null}
+                    {type === 'REMOVED' ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /></svg> : null}
+                    {type === 'MODIFIED' ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg> : null}
+                    {type} CLAUSES
+                </h3>
+                <div className="flex flex-col gap-4">
+                    {filtered.map((clause, i) => (
+                        <div key={i} className="bg-black/30 border border-white/5 p-4 rounded-xl">
+                            <h4 className="font-semibold text-white/90 mb-2">{clause.clause}</h4>
+                            <p className="text-sm text-white/70 leading-relaxed mb-3">{clause.description}</p>
+                            {clause.sources && clause.sources.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {clause.sources.map((src, j) => (
+                                        <Link key={j} href={`/viewer/${getDocId(src.doc)}?page=${src.page}&chunk=${src.chunk_id}`} target="_blank" className="text-xs flex items-center gap-1 bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded text-white/60 hover:text-white/90 transition-colors border border-white/10">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6" /><path d="M10 14 21 3" /><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>
+                                            Doc {src.doc} (Pg {src.page})
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="flex-1 flex flex-col p-8 max-w-6xl mx-auto w-full relative overflow-y-auto overflow-x-hidden min-h-screen">
-            {/* Background gradients */}
             <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none fixed" />
             <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none fixed" />
 
@@ -70,10 +122,10 @@ export default function ComparePage() {
                         Back to Upload
                     </Link>
                     <h1 className="text-4xl font-bold tracking-tight">
-                        Compare <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Documents</span>
+                        Compare <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">v2</span>
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        Select two processed documents to perform an AI-powered semantic comparison.
+                        Semantic difference analysis.
                     </p>
                 </div>
             </div>
@@ -134,7 +186,8 @@ export default function ComparePage() {
             )}
 
             {error && (
-                <div className="z-10 p-4 mb-8 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 font-medium text-sm">
+                <div className="z-10 p-4 mb-8 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 font-medium text-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
                     {error}
                 </div>
             )}
@@ -148,18 +201,15 @@ export default function ComparePage() {
                         className="z-10 flex flex-col gap-6"
                     >
                         {/* Top Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="glass p-6 rounded-2xl border border-white/10 flex flex-col itesm-center justify-center relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" x2="22" y1="12" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
-                                </div>
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Overall Similarity</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+                            <div className="glass p-8 rounded-2xl border border-white/10 flex flex-col justify-center relative overflow-hidden">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Calculated Semantic Similarity</h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className={`text-5xl font-bold tracking-tighter ${result.similarity_score > 80 ? 'text-green-400' : result.similarity_score > 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    <span className={`text-6xl font-bold tracking-tighter ${result.similarity_score > 80 ? 'text-green-400' : result.similarity_score > 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                                         {result.similarity_score}%
                                     </span>
                                 </div>
-                                <div className="mt-4 w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div className="mt-6 w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${result.similarity_score}%` }}
@@ -169,61 +219,25 @@ export default function ComparePage() {
                                 </div>
                             </div>
 
-                            <div className="glass p-6 rounded-2xl border border-white/10 flex flex-col justify-center">
-                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Risk Difference</h3>
-                                <p className="text-lg text-white/90 leading-relaxed font-medium">
-                                    {result.risk_difference}
-                                </p>
+                            <div className="glass p-6 rounded-2xl border border-white/10 flex flex-col justify-center gap-4">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">Risk Profile Shift</h3>
+                                {renderRisk(result.doc_a_risk, "Document A")}
+                                {renderRisk(result.doc_b_risk, "Document B")}
                             </div>
                         </div>
 
-                        {/* Changed Clauses */}
-                        {result.changed_clauses && result.changed_clauses.length > 0 && (
-                            <div className="glass p-6 rounded-2xl border border-white/10">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
-                                    Changed Clauses
-                                </h3>
-                                <div className="flex flex-col gap-3">
-                                    {result.changed_clauses.map((clause, i) => (
-                                        <div key={i} className="bg-black/30 border border-white/5 p-4 rounded-xl">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="font-semibold text-white/90">{clause.clause}</span>
-                                                <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 font-medium uppercase">{clause.type}</span>
-                                            </div>
-                                            <p className="text-sm text-white/70 leading-relaxed">{clause.diff}</p>
-                                        </div>
-                                    ))}
-                                </div>
+                        {/* Differences */}
+                        {result.differences && result.differences.length > 0 ? (
+                            <>
+                                {renderDiffSection(result.differences, 'MODIFIED', 'blue')}
+                                {renderDiffSection(result.differences, 'ADDED', 'green')}
+                                {renderDiffSection(result.differences, 'REMOVED', 'red')}
+                            </>
+                        ) : (
+                            <div className="glass p-8 rounded-2xl border border-white/10 text-center">
+                                <p className="text-muted-foreground font-medium">No significant differences detected between the selected documents.</p>
                             </div>
                         )}
-
-                        {/* Other differences */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {result.added_clauses && result.added_clauses.length > 0 && (
-                                <div className="glass p-6 rounded-2xl border border-green-500/20 bg-green-500/5">
-                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-green-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                                        Added Clauses
-                                    </h3>
-                                    <ul className="list-disc pl-5 space-y-2 text-white/80">
-                                        {result.added_clauses.map((item, i) => <li key={i}>{item}</li>)}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {result.removed_clauses && result.removed_clauses.length > 0 && (
-                                <div className="glass p-6 rounded-2xl border border-red-500/20 bg-red-500/5">
-                                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /></svg>
-                                        Removed Clauses
-                                    </h3>
-                                    <ul className="list-disc pl-5 space-y-2 text-white/80">
-                                        {result.removed_clauses.map((item, i) => <li key={i}>{item}</li>)}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
 
                         {/* Suggestions */}
                         {result.ai_suggestions && result.ai_suggestions.length > 0 && (
