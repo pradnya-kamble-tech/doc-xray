@@ -79,21 +79,42 @@ async def get_analysis(doc_id: str, db: AsyncSession = Depends(get_db)):
         except Exception:
             pass
 
+    # Calculate overall risk
+    doc_risk_score = 0.0
+    risk_reasons = []
+    if chunks:
+        doc_risk_score = sum(c.risk_score or 0.0 for c in chunks) / len(chunks)
+        for c in chunks:
+            if c.risk_level == "HIGH_RISK" and c.text not in risk_reasons:
+                # Add a short snippet as reason
+                risk_reasons.append(f"High risk language detected: '{c.text[:50]}...'")
+    
+    doc_risk_level = "LOW_RISK"
+    if doc_risk_score > 0.6:
+        doc_risk_level = "HIGH_RISK"
+    elif doc_risk_score > 0.3:
+        doc_risk_level = "MEDIUM_RISK"
+        
     doc_type = doc.document_type or "GENERAL"
     doc_confidence = doc.doc_type_confidence or 0.0
+    
+    # Combine recommended actions and db action items
+    final_actions = list(doc.recommended_actions or []) + action_items
 
     return AnalysisOut(
         document_id=doc_id,
         status=doc.status,
         page_count=doc.page_count or 0,
         document_type=doc_type,
-        doc_type_confidence=round(doc_confidence, 4),
+        document_type_confidence=round(doc_confidence, 4),
         doc_type_emoji=DOC_TYPE_EMOJIS.get(doc_type, "📄"),
         doc_type_explanation=DOC_TYPE_EXPLANATIONS.get(doc_type, DOC_TYPE_EXPLANATIONS["GENERAL"]),
-        extracted_data=doc.extracted_data or {},
-        recommended_actions=doc.recommended_actions or [],
+        key_information=doc.extracted_data or {},
+        risk_level=doc_risk_level,
+        risk_score=round(doc_risk_score * 100, 2),
+        risk_reasons=list(set(risk_reasons))[:5],
+        action_items=final_actions,
         summary=summary_row.text if summary_row else None,
-        action_items=action_items,
         keywords=keywords,
         annotations=[
             AnnotationOut(

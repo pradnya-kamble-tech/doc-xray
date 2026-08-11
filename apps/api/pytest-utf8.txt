@@ -1,0 +1,37 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.8.10, pytest-7.4.4, pluggy-1.5.0
+rootdir: C:\Users\Shuddhodhan\.gemini\antigravity\scratch\doc-xray\apps\api
+plugins: anyio-3.7.1, asyncio-0.23.3, base-url-2.1.0, playwright-0.5.2
+asyncio: mode=strict
+collected 0 items / 2 errors
+
+=================================== ERRORS ====================================
+______________________ ERROR collecting test-output.txt _______________________
+..\..\..\..\..\..\appdata\local\programs\python\python38\lib\pathlib.py:1237: in read_text
+    return f.read()
+..\..\..\..\..\..\appdata\local\programs\python\python38\lib\codecs.py:322: in decode
+    (result, consumed) = self._buffer_decode(data, self.errors, final)
+E   UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+___________________ ERROR collecting test_chat_endpoint.py ____________________
+test_chat_endpoint.py:3: in <module>
+    from main import app
+main.py:79: in <module>
+    from routers import documents, analysis, search, explain, chat, compare
+routers\documents.py:15: in <module>
+    from models.db import Document, Chunk, Annotation, Summary
+models\db.py:14: in <module>
+    class Document(Base):
+models\db.py:33: in Document
+    extracted_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True, default=dict)
+E   NameError: name 'JSONB' is not defined
+============================== warnings summary ===============================
+..\..\..\..\..\..\appdata\local\programs\python\python38\lib\site-packages\pydantic\_internal\_config.py:291
+  c:\users\shuddhodhan\appdata\local\programs\python\python38\lib\site-packages\pydantic\_internal\_config.py:291: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.9/migration/
+    warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR test-output.txt - UnicodeDecodeError: 'utf-8' codec can't decode byte 0...
+ERROR test_chat_endpoint.py - NameError: name 'JSONB' is not defined
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!
+======================== 1 warning, 2 errors in 1.30s =========================

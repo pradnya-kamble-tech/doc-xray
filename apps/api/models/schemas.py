@@ -1,8 +1,8 @@
 """Pydantic request/response schemas for Doc-XRay API."""
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # ──────────────────────────────────────────────
@@ -80,16 +80,18 @@ class AnalysisOut(BaseModel):
     status: str
     page_count: int
     document_type: Optional[str] = "GENERAL"
-    doc_type_confidence: Optional[float] = 0.0
+    document_type_confidence: Optional[float] = 0.0
     doc_type_emoji: Optional[str] = "📄"
     doc_type_explanation: Optional[str] = None
     
     # Document Intelligence Profile
-    extracted_data: Dict[str, Any] = Field(default_factory=dict)
-    recommended_actions: List[str] = Field(default_factory=list)
+    key_information: dict[str, Any] = Field(default_factory=dict)
+    risk_level: str = "LOW_RISK"
+    risk_score: float = 0.0
+    risk_reasons: list[str] = Field(default_factory=list)
+    action_items: list[str] = Field(default_factory=list)
 
     summary: Optional[str] = None
-    action_items: list[str] = []
     keywords: list[str] = []
     annotations: list[AnnotationOut] = []
     chunks: list[ChunkOut] = []
