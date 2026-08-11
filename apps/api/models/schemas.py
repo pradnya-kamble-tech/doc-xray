@@ -83,6 +83,11 @@ class AnalysisOut(BaseModel):
     doc_type_confidence: Optional[float] = 0.0
     doc_type_emoji: Optional[str] = "📄"
     doc_type_explanation: Optional[str] = None
+    
+    # Document Intelligence Profile
+    extracted_data: Dict[str, Any] = Field(default_factory=dict)
+    recommended_actions: List[str] = Field(default_factory=list)
+
     summary: Optional[str] = None
     action_items: list[str] = []
     keywords: list[str] = []

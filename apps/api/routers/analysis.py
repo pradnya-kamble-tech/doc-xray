@@ -21,6 +21,7 @@ from services.analysis_pipeline import (
     unsubscribe_from_status,
 )
 from services.summary_service import generate_action_items
+from services.document_classifier import DOC_TYPE_EMOJIS, DOC_TYPE_EXPLANATIONS
 
 logger = logging.getLogger(__name__)
 
@@ -78,10 +79,19 @@ async def get_analysis(doc_id: str, db: AsyncSession = Depends(get_db)):
         except Exception:
             pass
 
+    doc_type = doc.document_type or "GENERAL"
+    doc_confidence = doc.doc_type_confidence or 0.0
+
     return AnalysisOut(
         document_id=doc_id,
         status=doc.status,
         page_count=doc.page_count or 0,
+        document_type=doc_type,
+        doc_type_confidence=round(doc_confidence, 4),
+        doc_type_emoji=DOC_TYPE_EMOJIS.get(doc_type, "📄"),
+        doc_type_explanation=DOC_TYPE_EXPLANATIONS.get(doc_type, DOC_TYPE_EXPLANATIONS["GENERAL"]),
+        extracted_data=doc.extracted_data or {},
+        recommended_actions=doc.recommended_actions or [],
         summary=summary_row.text if summary_row else None,
         action_items=action_items,
         keywords=keywords,

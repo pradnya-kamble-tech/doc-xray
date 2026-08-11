@@ -1,0 +1,22 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Shuddhodhan\.gemini\antigravity\scratch\doc-xray\apps\api\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Shuddhodhan\.gemini\antigravity\scratch\doc-xray
+plugins: anyio-4.14.2
+collecting ... collected 13 items
+
+tests/test_classifier.py::test_classify_receipt PASSED                   [  7%]
+tests/test_classifier.py::test_classify_invoice PASSED                   [ 15%]
+tests/test_classifier.py::test_classify_contract PASSED                  [ 23%]
+tests/test_classifier.py::test_classify_academic PASSED                  [ 30%]
+tests/test_classifier.py::test_classify_general PASSED                   [ 38%]
+tests/test_classifier.py::test_classify_empty_text PASSED                [ 46%]
+tests/test_classifier.py::test_risk_receipt_is_low PASSED                [ 53%]
+tests/test_classifier.py::test_risk_contract_with_indemnification PASSED [ 61%]
+tests/test_classifier.py::test_risk_general_document PASSED              [ 69%]
+tests/test_classifier.py::test_risk_result_has_source PASSED             [ 76%]
+tests/test_classifier.py::test_extract_receipt_info PASSED               [ 84%]
+tests/test_classifier.py::test_extract_contract_info PASSED              [ 92%]
+tests/test_classifier.py::test_extract_invoice_info PASSED               [100%]
+
+============================= 13 passed in 0.86s ==============================

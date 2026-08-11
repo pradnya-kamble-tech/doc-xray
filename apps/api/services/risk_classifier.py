@@ -10,6 +10,12 @@ Two-layer classification:
 
 These two layers are explicitly kept separate. The override layer is not ML.
 Do not present rule-based results as machine learning predictions.
+
+Phase 2 Addition:
+  classify() now accepts an optional `document_type` parameter.
+  Per-type risk logic ensures that normal receipts/invoices are not falsely
+  flagged HIGH_RISK merely because they contain words like "payment" or "fee".
+  Risk must be meaningful for the specific document type.
 """
 from __future__ import annotations
 import re
@@ -26,7 +32,9 @@ logger = logging.getLogger(__name__)
 MODEL_PATH = Path(__file__).parent.parent / "data" / "risk_classifier.pkl"
 
 # ──────────────────────────────────────────────
-# Rule-based high-risk phrase patterns
+# Rule-based HIGH-RISK phrase patterns
+# These apply ONLY to documents where such language is meaningful risk
+# (i.e., contracts, legal docs) — see _rule_override() for type gating.
 # (Deterministic — not ML)
 # ──────────────────────────────────────────────
 HIGH_RISK_PATTERNS = [
@@ -65,9 +73,115 @@ HIGH_RISK_PATTERNS = [
 _COMPILED_PATTERNS = [re.compile(p, re.IGNORECASE) for p in HIGH_RISK_PATTERNS]
 
 # ──────────────────────────────────────────────
-# Heuristic: benign document type detection
-# Receipts, invoices, fee acknowledgements → LOW_RISK
-# (Runs BEFORE ML and rule override)
+# Document types that are "benign by nature" —
+# generic financial terms should NOT trigger HIGH_RISK on these
+# ──────────────────────────────────────────────
+_BENIGN_BY_NATURE = {"RECEIPT", "INVOICE", "ACADEMIC", "EMAIL", "FORM", "GENERAL"}
+
+# ──────────────────────────────────────────────
+# Per-document-type risk keyword sets (context-aware, not generic)
+# These are the keywords that actually matter for each document type.
+# ──────────────────────────────────────────────
+_DOC_TYPE_RISK_KEYWORDS: dict[str, dict[str, list[str]]] = {
+    "CONTRACT": {
+        "HIGH_RISK": [
+            "indemnif", "liquidated damages", "limitation of liability",
+            "force majeure", "bankruptcy", "insolvency", "foreclosure",
+            "arbitration", "injunction", "punitive damages", "clawback",
+            "rescission", "subrogation", "pari passu", "poison pill",
+            "irrevocably", "non-compete", "escrow forfeiture",
+        ],
+        "MEDIUM_RISK": [
+            "termination", "penalty", "breach", "liability", "waiver",
+            "default", "obligations", "indemnity", "confidentiality",
+            "intellectual property", "governing law", "jurisdiction",
+            "warranty", "representations",
+        ],
+    },
+    "RECEIPT": {
+        "HIGH_RISK": [
+            # Only flag truly anomalous receipt content
+            "fraud", "unauthorized transaction", "disputed charge",
+            "chargeback", "counterfeit",
+        ],
+        "MEDIUM_RISK": [
+            # Missing key fields is medium risk for receipts
+        ],
+    },
+    "INVOICE": {
+        "HIGH_RISK": [
+            "overdue", "final demand", "legal action",
+            "debt collection", "court proceedings",
+        ],
+        "MEDIUM_RISK": [
+            "past due", "late payment fee", "interest charged",
+            "collection agency", "credit hold",
+        ],
+    },
+    "ACADEMIC": {
+        "HIGH_RISK": [
+            "academic dishonesty", "plagiarism", "expulsion",
+            "suspension", "dismissed", "termination of enrollment",
+        ],
+        "MEDIUM_RISK": [
+            "probation", "warning", "failed", "incomplete",
+            "deferred", "unpaid dues",
+        ],
+    },
+    "FORM": {
+        "HIGH_RISK": [
+            "rejected", "fraud", "misrepresentation",
+            "false declaration", "penalty for",
+        ],
+        "MEDIUM_RISK": [
+            "incomplete", "missing information", "required field",
+            "not applicable", "pending verification",
+        ],
+    },
+    "REPORT": {
+        "HIGH_RISK": [
+            "material weakness", "going concern", "restatement",
+            "regulatory action", "fraud", "audit failure",
+            "breach of covenant",
+        ],
+        "MEDIUM_RISK": [
+            "significant risk", "adverse finding", "non-compliance",
+            "deficit", "loss", "write-off", "impairment",
+        ],
+    },
+    "EMAIL": {
+        "HIGH_RISK": [
+            "phishing", "scam", "urgent wire transfer", "account compromised",
+            "verify your account", "your account will be closed",
+        ],
+        "MEDIUM_RISK": [
+            "urgent", "deadline", "overdue", "final notice",
+        ],
+    },
+}
+
+# Fallback keywords for GENERAL and unknown types
+_GENERAL_RISK_KEYWORDS = {
+    "HIGH_RISK": [
+        "breach", "penalty", "terminate", "liability", "obligation",
+        "legal", "compliance", "violation", "damages", "fraud",
+    ],
+    "MEDIUM_RISK": [
+        "risk", "warning", "dispute", "irregular", "anomaly",
+    ],
+}
+
+_COMPILED_DOC_TYPE_PATTERNS: dict[str, dict[str, list[re.Pattern]]] = {
+    doc_type: {
+        level: [re.compile(r"\b" + re.escape(kw) + r"\b", re.IGNORECASE) for kw in kws]
+        for level, kws in levels.items()
+    }
+    for doc_type, levels in _DOC_TYPE_RISK_KEYWORDS.items()
+}
+
+
+# ──────────────────────────────────────────────
+# Heuristic: benign document type detection (legacy — kept for compatibility)
 # ──────────────────────────────────────────────
 BENIGN_DOC_PATTERNS = [
     r"\bfee\s+receipt\b",
@@ -104,13 +218,16 @@ def _is_benign_document(text: str) -> bool:
 class RiskResult:
     risk_level: str         # LOW_RISK | MEDIUM_RISK | HIGH_RISK
     risk_score: float       # 0.0–1.0 (from predict_proba for ML; 1.0 for rule override)
-    prediction_source: str  # "ml" | "rule_override" | "heuristic"
+    prediction_source: str  # "ml" | "rule_override" | "heuristic" | "doc_type_rule"
 
 
 class RiskClassifier:
     """
     Wraps the trained scikit-learn pipeline.
     Falls back to a rule-based classifier if the model file is missing.
+
+    classify() now accepts an optional document_type parameter to apply
+    context-aware risk logic per document type.
     """
 
     def __init__(self):
@@ -140,33 +257,81 @@ class RiskClassifier:
                 return True
         return False
 
-    def classify(self, text: str) -> RiskResult:
+    def _doc_type_classify(self, text: str, document_type: str) -> Optional["RiskResult"]:
+        """
+        Apply document-type-specific risk logic.
+
+        Returns a RiskResult if a type-specific rule fires, or None to
+        fall through to ML/generic classification.
+        """
+        patterns = _COMPILED_DOC_TYPE_PATTERNS.get(document_type)
+        if not patterns:
+            return None
+
+        # Check HIGH_RISK patterns for this doc type
+        high_patterns = patterns.get("HIGH_RISK", [])
+        for pattern in high_patterns:
+            if pattern.search(text):
+                return RiskResult(
+                    risk_level="HIGH_RISK",
+                    risk_score=0.90,
+                    prediction_source="doc_type_rule",
+                )
+
+        # Check MEDIUM_RISK patterns for this doc type
+        medium_patterns = patterns.get("MEDIUM_RISK", [])
+        hits = sum(1 for p in medium_patterns if p.search(text))
+        if hits >= 2:
+            return RiskResult(
+                risk_level="MEDIUM_RISK",
+                risk_score=0.60,
+                prediction_source="doc_type_rule",
+            )
+        if hits == 1:
+            return RiskResult(
+                risk_level="LOW_RISK",
+                risk_score=0.20,
+                prediction_source="doc_type_rule",
+            )
+
+        return None  # fall through
+
+    def classify(self, text: str, document_type: str = "GENERAL") -> RiskResult:
         """
         Classify text into LOW_RISK | MEDIUM_RISK | HIGH_RISK.
 
         Priority:
         1. Heuristic: benign doc type (receipt/invoice) → always LOW_RISK
-        2. Rule override: explicit high-risk legal phrases
-        3. ML prediction (TF-IDF + SGD)
-        4. Keyword fallback
+        2. Document-type-specific rules (if document_type is known)
+        3. Rule override: explicit high-risk legal phrases (only for non-benign types)
+        4. ML prediction (TF-IDF + SGD)
+        5. Keyword fallback
         """
-        # Step 0: Heuristic override — benign document types
-        if _is_benign_document(text):
+        # Step 0: Heuristic override — benign document types (legacy safety net)
+        if document_type in _BENIGN_BY_NATURE and _is_benign_document(text):
             return RiskResult(
                 risk_level="LOW_RISK",
                 risk_score=0.05,
                 prediction_source="heuristic",
             )
 
-        # Step 1: Rule-based override (deterministic, not ML)
-        if self._rule_override(text):
-            return RiskResult(
-                risk_level="HIGH_RISK",
-                risk_score=1.0,
-                prediction_source="rule_override",
-            )
+        # Step 1: Document-type-specific rules
+        if document_type and document_type != "GENERAL":
+            doc_type_result = self._doc_type_classify(text, document_type)
+            if doc_type_result is not None:
+                return doc_type_result
 
-        # Step 2: ML prediction
+        # Step 2: Rule-based override (deterministic, not ML)
+        # Only apply generic high-risk patterns to contract/report/general — not receipts
+        if document_type not in _BENIGN_BY_NATURE:
+            if self._rule_override(text):
+                return RiskResult(
+                    risk_level="HIGH_RISK",
+                    risk_score=1.0,
+                    prediction_source="rule_override",
+                )
+
+        # Step 3: ML prediction
         if self._model_loaded and self._pipeline is not None:
             try:
                 proba = self._pipeline.predict_proba([text])[0]
@@ -174,6 +339,12 @@ class RiskClassifier:
                 predicted_idx = int(np.argmax(proba))
                 predicted_label = classes[predicted_idx]
                 confidence = float(proba[predicted_idx])
+
+                # For benign doc types, cap at MEDIUM_RISK from ML
+                if document_type in _BENIGN_BY_NATURE and predicted_label == "HIGH_RISK":
+                    predicted_label = "MEDIUM_RISK"
+                    confidence = min(confidence, 0.6)
+
                 return RiskResult(
                     risk_level=predicted_label,
                     risk_score=round(confidence, 4),
@@ -182,14 +353,16 @@ class RiskClassifier:
             except Exception as e:
                 logger.error(f"ML classification failed: {e}")
 
-        # Step 3: Fallback when no model is available — simple keyword count
+        # Step 4: Fallback when no model is available — simple keyword count
         text_lower = text.lower()
         risk_keywords = [
             "breach", "penalty", "terminate", "liability", "obligation",
             "legal", "compliance", "violation", "damages", "risk",
         ]
+        # For benign types, require more keyword hits before flagging
+        threshold = 5 if document_type in _BENIGN_BY_NATURE else 3
         hit_count = sum(1 for kw in risk_keywords if kw in text_lower)
-        if hit_count >= 3:
+        if hit_count >= threshold:
             return RiskResult(risk_level="MEDIUM_RISK", risk_score=0.5, prediction_source="ml")
         return RiskResult(risk_level="LOW_RISK", risk_score=0.5, prediction_source="ml")
 

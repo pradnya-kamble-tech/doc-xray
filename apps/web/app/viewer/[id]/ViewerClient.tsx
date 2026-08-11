@@ -243,6 +243,46 @@ export function ViewerClient({ docId }: { docId: string }) {
                         <motion.div key="summary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="flex-1 overflow-y-auto p-5 space-y-4">
 
+                            {/* ── Document Type Card ── */}
+                            {analysis.document_type && (
+                                <div className="p-4 rounded-xl border" style={{
+                                    background: 'linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(59,130,246,0.06) 100%)',
+                                    borderColor: 'rgba(139,92,246,0.25)'
+                                }}>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Document Type</span>
+                                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/25">
+                                            {Math.round((analysis.doc_type_confidence || 0) * 100)}% confidence
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="text-2xl">{analysis.doc_type_emoji || '📄'}</span>
+                                        <span className="text-xl font-bold tracking-tight text-white">{analysis.document_type}</span>
+                                    </div>
+                                    {analysis.doc_type_explanation && (
+                                        <p className="text-xs text-muted-foreground/80 leading-relaxed italic">
+                                            {analysis.doc_type_explanation}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ── Key Information Card ── */}
+                            {analysis.extracted_data && Object.keys(analysis.extracted_data).length > 0 && (
+                                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">🗝️ Key Information</h3>
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-2">
+                                        {Object.entries(analysis.extracted_data).map(([key, value]) => (
+                                            <div key={key} className="flex flex-col">
+                                                <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mb-0.5">{key}</span>
+                                                <span className="text-sm font-medium text-white truncate" title={value}>{value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+
                             {/* Overall Risk Score Card */}
                             <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                                 <div className="flex items-center justify-between mb-2">
@@ -261,6 +301,22 @@ export function ViewerClient({ docId }: { docId: string }) {
                                     <span>Low</span><span>Medium</span><span>High</span>
                                 </div>
                             </div>
+
+                            {/* ── Recommended Actions Card ── */}
+                            {analysis.recommended_actions && analysis.recommended_actions.length > 0 && (
+                                <div className="p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
+                                    <h3 className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-3">✅ Recommended Actions</h3>
+                                    <ul className="space-y-2">
+                                        {analysis.recommended_actions.map((action, i) => (
+                                            <li key={i} className="flex items-start gap-2 text-sm text-emerald-100/80 leading-snug">
+                                                <span className="shrink-0 text-emerald-400">→</span>
+                                                <span className="leading-tight">{action}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
 
                             {/* Metadata Mini-Cards */}
                             <div className="grid grid-cols-2 gap-2">

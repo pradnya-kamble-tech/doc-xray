@@ -1,0 +1,40 @@
+NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of 1st January 2025 (the "Effective Date") by and between:
+
+Party A: AlphaTech Solutions Pvt. Ltd., a company incorporated under the laws of India with its principal office at 100 Tech Park, Bangalore, KA 560001 ("Disclosing Party")
+
+and
+
+Party B: Beta Consulting Group, a partnership firm registered in India with its principal office at 200 MG Road, Mumbai, MH 400001 ("Receiving Party")
+
+WHEREAS, the parties wish to explore a potential business relationship and in connection therewith, the Disclosing Party may disclose to the Receiving Party certain confidential and proprietary information;
+
+NOW, THEREFORE, in consideration of the mutual covenants and conditions hereinafter set forth, the parties agree as follows:
+
+1. CONFIDENTIAL INFORMATION
+   "Confidential Information" means any and all information or data that has or could have commercial value or other utility in the business in which Disclosing Party is engaged.
+
+2. OBLIGATIONS OF RECEIVING PARTY
+   The Receiving Party agrees to: (a) hold the Confidential Information in strict confidence; (b) not disclose the Confidential Information to any third party without the prior written consent of the Disclosing Party; (c) use the Confidential Information solely for the purpose of evaluating the business relationship.
+
+3. TERM
+   This Agreement shall remain in effect for a period of two (2) years from the Effective Date, unless earlier terminated by either party upon thirty (30) days written notice.
+
+4. GOVERNING LAW AND JURISDICTION
+   This Agreement shall be governed by and construed in accordance with the laws of India. Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the courts of Bangalore, Karnataka.
+
+5. INDEMNIFICATION
+   The Receiving Party shall indemnify, defend and hold harmless the Disclosing Party from and against any and all claims, damages, losses, liabilities arising out of any breach of this Agreement.
+
+6. LIMITATION OF LIABILITY
+   In no event shall either party be liable for any indirect, incidental, special, exemplary, or consequential damages, however caused.
+
+7. TERMINATION
+   Either party may terminate this Agreement upon written notice if the other party breaches any material obligation hereunder.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+AlphaTech Solutions Pvt. Ltd.          Beta Consulting Group
+_____________________________          _____________________________
+Authorized Signatory                   Authorized Signatory

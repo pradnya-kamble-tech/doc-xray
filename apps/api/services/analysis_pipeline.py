@@ -24,6 +24,7 @@ from services.embedding_service import get_embedding_service
 from services.vector_store import get_vector_store
 from services.summary_service import generate_summary
 from services.document_classifier import classify_document, ClassificationResult
+from services.type_extractor import extract_document_intelligence
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +106,11 @@ async def run_analysis_pipeline(doc_id: str, file_path: str) -> None:
                 f"Document {doc_id} classified as {doc_classification.document_type} "
                 f"(confidence={doc_classification.confidence:.3f})"
             )
+            
+            # ── Stage 1c: Extract Document Intelligence Profile ──────────
+            intelligence_profile = extract_document_intelligence(
+                full_text, doc_classification.document_type
+            )
 
             await db.execute(
                 update(Document)
@@ -113,6 +119,8 @@ async def run_analysis_pipeline(doc_id: str, file_path: str) -> None:
                     page_count=page_count,
                     document_type=doc_classification.document_type,
                     doc_type_confidence=doc_classification.confidence,
+                    extracted_data=intelligence_profile.get("extracted_data", {}),
+                    recommended_actions=intelligence_profile.get("recommended_actions", []),
                 )
             )
             await db.commit()
