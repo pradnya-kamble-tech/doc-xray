@@ -25,6 +25,9 @@ class Document(Base):
     current_stage: Mapped[str] = mapped_column(String, nullable=True, default="")
     error_message: Mapped[str] = mapped_column(Text, nullable=True, default="")
     page_count: Mapped[int] = mapped_column(Integer, nullable=True, default=0)
+    # Document type classification (added in phase 2 upgrade)
+    document_type: Mapped[str] = mapped_column(String, nullable=True, default="GENERAL")
+    doc_type_confidence: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
