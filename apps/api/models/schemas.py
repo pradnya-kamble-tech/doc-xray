@@ -19,6 +19,8 @@ class DocumentOut(BaseModel):
     current_stage: Optional[str] = None
     error_message: Optional[str] = None
     page_count: int
+    document_type: Optional[str] = "GENERAL"
+    doc_type_confidence: Optional[float] = 0.0
     created_at: datetime
     updated_at: datetime
 
@@ -77,6 +79,10 @@ class AnalysisOut(BaseModel):
     document_id: str
     status: str
     page_count: int
+    document_type: Optional[str] = "GENERAL"
+    doc_type_confidence: Optional[float] = 0.0
+    doc_type_emoji: Optional[str] = "📄"
+    doc_type_explanation: Optional[str] = None
     summary: Optional[str] = None
     action_items: list[str] = []
     keywords: list[str] = []

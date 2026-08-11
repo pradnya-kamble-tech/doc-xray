@@ -23,6 +23,7 @@ from services.risk_classifier import get_classifier
 from services.embedding_service import get_embedding_service
 from services.vector_store import get_vector_store
 from services.summary_service import generate_summary
+from services.document_classifier import classify_document, ClassificationResult
 
 logger = logging.getLogger(__name__)
 
@@ -97,10 +98,22 @@ async def run_analysis_pipeline(doc_id: str, file_path: str) -> None:
             if not pages:
                 raise ValueError("No text could be extracted from this document.")
 
+            # ── Stage 1b: Classify Document Type ─────────────────────────
+            full_text = "\n".join(p.text for p in pages)
+            doc_classification: ClassificationResult = classify_document(full_text)
+            logger.info(
+                f"Document {doc_id} classified as {doc_classification.document_type} "
+                f"(confidence={doc_classification.confidence:.3f})"
+            )
+
             await db.execute(
                 update(Document)
                 .where(Document.id == doc_id)
-                .values(page_count=page_count)
+                .values(
+                    page_count=page_count,
+                    document_type=doc_classification.document_type,
+                    doc_type_confidence=doc_classification.confidence,
+                )
             )
             await db.commit()
 
@@ -157,7 +170,7 @@ async def run_analysis_pipeline(doc_id: str, file_path: str) -> None:
             classifier = get_classifier()
 
             for db_chunk, tc in zip(db_chunks, text_chunks):
-                result = classifier.classify(tc.text)
+                result = classifier.classify(tc.text, document_type=doc_classification.document_type)
                 await db.execute(
                     update(Chunk)
                     .where(Chunk.id == db_chunk.id)
