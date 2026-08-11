@@ -37,6 +37,16 @@ def extract_document_intelligence(text: str, document_type: str) -> dict[str, An
         if date_match:
             data['Date'] = date_match.group(1).strip()
             
+        # Payment Type
+        ptype_match = re.search(r'(?:Payment Method|Payment Type|Paid By)[:\-]?\s*(Credit Card|Debit Card|Cash|UPI|Net Banking|Check|Cheque)', text, re.IGNORECASE)
+        if ptype_match:
+            data['Payment Type'] = ptype_match.group(1).strip()
+            
+        # Vendor/Institution
+        vendor_match = re.search(r'^(.*?)(?:\n|Private Limited|Ltd|LLC|Inc)', text, re.IGNORECASE)
+        if vendor_match and len(vendor_match.group(1)) > 3 and len(vendor_match.group(1)) < 30:
+            data['Vendor/Institution'] = vendor_match.group(1).strip()
+            
         # Actions
         actions.append("Verify transaction ID matches bank records")
         actions.append("Ensure expense claim category is assigned")
@@ -66,6 +76,19 @@ def extract_document_intelligence(text: str, document_type: str) -> dict[str, An
         if po_match:
             data['PO Reference'] = po_match.group(1).strip()
 
+        # Vendor and Customer
+        vendor_match = re.search(r'(?:From|Billed By)[:\-]?\s*([A-Za-z0-9\s.,]+)', text, re.IGNORECASE)
+        if vendor_match:
+            data['Vendor'] = vendor_match.group(1).strip()
+            
+        customer_match = re.search(r'(?:Bill To|Billed To|Customer)[:\-]?\s*([A-Za-z0-9\s.,]+)', text, re.IGNORECASE)
+        if customer_match:
+            data['Customer'] = customer_match.group(1).strip()
+            
+        terms_match = re.search(r'(?:Payment Terms|Terms)[:\-]?\s*([\w\s]+)', text, re.IGNORECASE)
+        if terms_match:
+            data['Payment Terms'] = terms_match.group(1).strip()
+
         actions.append("Schedule payment before due date to avoid late fees")
         actions.append("Verify GSTIN validity on government portal")
         actions.append("Match PO Reference with internal purchase orders")
@@ -89,6 +112,14 @@ def extract_document_intelligence(text: str, document_type: str) -> dict[str, An
         jurisdiction_match = re.search(r'(?:jurisdiction of the courts of|laws of)\s+([A-Z][a-zA-Z\s]+)', text, re.IGNORECASE)
         if jurisdiction_match:
             data['Jurisdiction'] = jurisdiction_match.group(1).strip()
+            
+        payment_obs = re.search(r'(?:shall pay|agrees to pay)\s+(?:the sum of\s+)?((?:Rs\.?|INR|\₹|\$)?\s*[0-9,]+(?:\.[0-9]{2})?)', text, re.IGNORECASE)
+        if payment_obs:
+            data['Payment Obligation'] = payment_obs.group(1).strip()
+            
+        expiry_match = re.search(r'(?:Expiration date|Termination date)\s*[:\-]?\s*([0-9]{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]+\s+[0-9]{4}|[0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})', text, re.IGNORECASE)
+        if expiry_match:
+            data['Expiry/Termination'] = expiry_match.group(1).strip()
             
         actions.append("Review 'Indemnification' and 'Limitation of Liability' clauses carefully")
         actions.append("Ensure legal team signs off on jurisdiction terms")

@@ -148,13 +148,12 @@ export function ViewerClient({ docId }: { docId: string }) {
         return c?.id ?? null
     }, [analysis])
 
-    // Computed risk score 0-100
-    const overallRiskScore = analysis
-        ? Math.round((analysis.chunks.reduce((acc, c) => acc + (c.risk_score || 0), 0) / Math.max(analysis.chunks.length, 1)) * 100)
-        : 0
+    // Computed risk score (provided by backend now)
+    const overallRiskScore = analysis ? Math.round(analysis.risk_score || 0) : 0
     const riskColor = overallRiskScore <= 30 ? 'text-green-400' : overallRiskScore <= 70 ? 'text-yellow-400' : 'text-red-400'
     const riskBarColor = overallRiskScore <= 30 ? 'from-green-500 to-emerald-400' : overallRiskScore <= 70 ? 'from-yellow-500 to-amber-400' : 'from-red-500 to-rose-400'
-    const riskLabel = overallRiskScore <= 30 ? '🟢 Low Risk' : overallRiskScore <= 70 ? '🟡 Medium Risk' : '🔴 High Risk'
+    const riskLevelStr = analysis?.risk_level === 'HIGH_RISK' ? '🔴 High Risk' : analysis?.risk_level === 'MEDIUM_RISK' ? '🟡 Medium Risk' : '🟢 Low Risk'
+    const riskLabel = riskLevelStr
 
     // Entity groups
     const entityGroups = analysis
@@ -252,7 +251,7 @@ export function ViewerClient({ docId }: { docId: string }) {
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Document Type</span>
                                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/25">
-                                            {Math.round((analysis.doc_type_confidence || 0) * 100)}% confidence
+                                            {Math.round((analysis.document_type_confidence || 0) * 100)}% confidence
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 mb-3">
@@ -268,11 +267,11 @@ export function ViewerClient({ docId }: { docId: string }) {
                             )}
 
                             {/* ── Key Information Card ── */}
-                            {analysis.extracted_data && Object.keys(analysis.extracted_data).length > 0 && (
+                            {analysis.key_information && Object.keys(analysis.key_information).length > 0 && (
                                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                                     <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">🗝️ Key Information</h3>
                                     <div className="grid grid-cols-2 gap-y-3 gap-x-2">
-                                        {Object.entries(analysis.extracted_data).map(([key, value]) => (
+                                        {Object.entries(analysis.key_information).map(([key, value]) => (
                                             <div key={key} className="flex flex-col">
                                                 <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mb-0.5">{key}</span>
                                                 <span className="text-sm font-medium text-white truncate" title={value}>{value}</span>
@@ -300,14 +299,24 @@ export function ViewerClient({ docId }: { docId: string }) {
                                 <div className="mt-2 flex justify-between text-[10px] text-muted-foreground/50">
                                     <span>Low</span><span>Medium</span><span>High</span>
                                 </div>
+                                {analysis.risk_reasons && analysis.risk_reasons.length > 0 && (
+                                    <div className="mt-3 p-2 bg-black/20 rounded-md text-xs text-muted-foreground">
+                                        <p className="font-semibold mb-1 text-white/70">Risk Factors:</p>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            {analysis.risk_reasons.map((reason: string, i: number) => (
+                                                <li key={i}>{reason}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* ── Recommended Actions Card ── */}
-                            {analysis.recommended_actions && analysis.recommended_actions.length > 0 && (
+                            {/* ── Action Items Card ── */}
+                            {analysis.action_items && analysis.action_items.length > 0 && (
                                 <div className="p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
-                                    <h3 className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-3">✅ Recommended Actions</h3>
+                                    <h3 className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-3">✅ Action Items</h3>
                                     <ul className="space-y-2">
-                                        {analysis.recommended_actions.map((action, i) => (
+                                        {analysis.action_items.map((action: string, i: number) => (
                                             <li key={i} className="flex items-start gap-2 text-sm text-emerald-100/80 leading-snug">
                                                 <span className="shrink-0 text-emerald-400">→</span>
                                                 <span className="leading-tight">{action}</span>
@@ -316,7 +325,6 @@ export function ViewerClient({ docId }: { docId: string }) {
                                     </ul>
                                 </div>
                             )}
-
 
                             {/* Metadata Mini-Cards */}
                             <div className="grid grid-cols-2 gap-2">
@@ -346,19 +354,7 @@ export function ViewerClient({ docId }: { docId: string }) {
                                 </div>
                             )}
 
-                            {/* Action Items */}
-                            {analysis.action_items && analysis.action_items.length > 0 && (
-                                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                                    <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">📋 Things to Know</h3>
-                                    <ul className="space-y-2">
-                                        {analysis.action_items.map((item, i) => (
-                                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground leading-snug">
-                                                <span className="shrink-0">{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+
 
                             {/* Explain Panel — shows when user clicks a highlight */}
                             {selectedSpan && (

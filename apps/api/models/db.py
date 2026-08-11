@@ -1,7 +1,8 @@
 """SQLAlchemy ORM models for Doc-XRay."""
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Float, Text, DateTime, ForeignKey
+from typing import Any
+from sqlalchemy import String, Integer, Float, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.database import Base
@@ -30,8 +31,8 @@ class Document(Base):
     doc_type_confidence: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
     
     # Document Intelligence Profile fields (Type-specific extractions)
-    extracted_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True, default=dict)
-    recommended_actions: Mapped[list[str]] = mapped_column(JSONB, nullable=True, default=list)
+    extracted_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=True, default=dict)
+    recommended_actions: Mapped[list[str]] = mapped_column(JSON, nullable=True, default=list)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
