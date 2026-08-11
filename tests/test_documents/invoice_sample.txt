@@ -1,0 +1,39 @@
+INVOICE
+
+Invoice No: INV-2025-0089
+Invoice Date: 10 August 2025
+Due Date: 10 September 2025
+Payment Terms: Net 30 Days
+
+Bill To:
+Acme Corporation Pvt. Ltd.
+123 Business Park, Pune, MH 411001
+GSTIN: 27AABCU9603R1ZX
+
+Ship To:
+Acme Corporation Pvt. Ltd.
+456 Warehouse Road, Pune, MH 411002
+
+From:
+TechSupplies India Pvt. Ltd.
+789 Supplier Lane, Mumbai, MH 400001
+GSTIN: 27AADCT5643M1ZP
+
+Item No | Description             | Qty | Unit Price | Amount
+--------|-------------------------|-----|------------|--------
+001     | Wireless Keyboard       |  10 | Rs. 1,200  | Rs. 12,000
+002     | Optical Mouse           |  10 | Rs.   800  | Rs.  8,000
+003     | 27-inch Monitor         |   5 | Rs. 18,000 | Rs. 90,000
+004     | HDMI Cable 2m           |  15 | Rs.   350  | Rs.  5,250
+
+                              Subtotal:  Rs. 1,15,250
+                              GST (18%): Rs.  20,745
+                  Total Amount Due:      Rs. 1,36,095
+
+Payment Instructions:
+Bank: HDFC Bank
+Account No: 00011234567890
+IFSC: HDFC0000123
+
+Please remit payment by due date to avoid late payment fee.
+Purchase Order Reference: PO-ACME-2025-0456

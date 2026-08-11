@@ -1,0 +1,26 @@
+COLLEGE FEE RECEIPT
+
+Receipt No: 2024-CS-00123
+Date: 15 January 2025
+Transaction ID: TXN987654321
+
+Received with thanks from:
+Student Name: Rahul Sharma
+Roll No: 2021CS045
+Course: B.Tech Computer Science
+Semester: VI
+
+Payment Details:
+Tuition Fee:           Rs. 45,000
+Development Fee:       Rs. 5,000
+Library Fee:           Rs. 2,000
+Exam Fee:              Rs. 1,500
+---------------------------------
+Total Amount Paid:     Rs. 53,500
+
+Payment Method: Online (NEFT)
+Bank Reference: SBIN2025011500456789
+Payment Status: Successful
+
+This is a system-generated receipt.
+For queries contact: fees@college.edu.in

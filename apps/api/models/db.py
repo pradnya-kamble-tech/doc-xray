@@ -28,6 +28,11 @@ class Document(Base):
     # Document type classification (added in phase 2 upgrade)
     document_type: Mapped[str] = mapped_column(String, nullable=True, default="GENERAL")
     doc_type_confidence: Mapped[float] = mapped_column(Float, nullable=True, default=0.0)
+    
+    # Document Intelligence Profile fields (Type-specific extractions)
+    extracted_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True, default=dict)
+    recommended_actions: Mapped[list[str]] = mapped_column(JSONB, nullable=True, default=list)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 

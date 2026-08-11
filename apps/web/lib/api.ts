@@ -48,6 +48,12 @@ export interface AnalysisResult {
     document_id: string;
     status: string;
     page_count: number;
+    document_type?: string;
+    doc_type_confidence?: number;
+    doc_type_emoji?: string;
+    doc_type_explanation?: string;
+    extracted_data?: Record<string, string>;
+    recommended_actions?: string[];
     summary?: string;
     action_items: string[];
     keywords: string[];
