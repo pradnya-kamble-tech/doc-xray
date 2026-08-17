@@ -1,0 +1,17 @@
+commit c2ecc611e585dd4759f1bb06724dd07efa75490b
+Author: Doc-XRay Dev <dev@doc-xray.local>
+Date:   Tue Aug 11 23:40:29 2026 +0530
+
+    feat: complete document intelligence profiles integration
+
+ apps/api/models/db.py                     |   7 +++--
+ apps/api/models/schemas.py                |  14 +++++----
+ apps/api/pytest-utf8.txt                  |  37 +++++++++++++++++++++++
+ apps/api/pytest_output.txt                |   2 ++
+ apps/api/routers/analysis.py              |  29 +++++++++++++++---
+ apps/api/services/type_extractor.py       |  31 +++++++++++++++++++
+ apps/api/test-output.txt                  | Bin 0 -> 5262 bytes
+ apps/web/app/viewer/[id]/ViewerClient.tsx |  48 ++++++++++++++----------------
+ apps/web/build_output.txt                 |  33 ++++++++++++++++++++
+ apps/web/lib/api.ts                       |  10 ++++---
+ 10 files changed, 168 insertions(+), 43 deletions(-)
