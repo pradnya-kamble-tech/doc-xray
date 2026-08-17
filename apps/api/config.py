@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"
     gemini_api_key: str = ""
     openai_api_key: str = ""
+    frontend_url: str = "http://localhost:3000"
 
     upload_dir: Path = BASE_DIR / "data" / "uploads"
     chroma_dir: Path = BASE_DIR / "data" / "chroma"
