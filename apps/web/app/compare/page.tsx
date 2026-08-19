@@ -19,7 +19,8 @@ export default function ComparePage() {
         async function loadDocs() {
             try {
                 const res = await listDocuments()
-                const validDocs = res.documents.filter(d => d.status === "DONE" || d.status === "PENDING")
+                // Only allow DONE documents for comparison
+                const validDocs = res.documents.filter(d => d.status === "DONE")
                 setDocuments(validDocs)
 
                 if (validDocs.length >= 2) {
@@ -63,12 +64,13 @@ export default function ComparePage() {
     const renderRisk = (risk: DocumentRisk, title: string) => {
         const isHigh = risk.level === 'HIGH_RISK';
         const isMedium = risk.level === 'MEDIUM_RISK';
+        const scoreFormatted = risk?.score != null ? risk.score.toFixed(2) : '0.00';
         return (
             <div className={`p-4 rounded-xl border ${isHigh ? 'border-red-500/30 bg-red-500/10' : isMedium ? 'border-yellow-500/30 bg-yellow-500/10' : 'border-green-500/30 bg-green-500/10'}`}>
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-1">{title} Risk</h4>
                 <div className="flex items-center justify-between">
-                    <span className={`font-bold ${isHigh ? 'text-red-400' : isMedium ? 'text-yellow-400' : 'text-green-400'}`}>{risk.level.replace('_', ' ')}</span>
-                    <span className="text-sm font-medium opacity-80">{risk.score.toFixed(2)}</span>
+                    <span className={`font-bold ${isHigh ? 'text-red-400' : isMedium ? 'text-yellow-400' : 'text-green-400'}`}>{risk.level ? risk.level.replace('_', ' ') : 'LOW RISK'}</span>
+                    <span className="text-sm font-medium opacity-80">{scoreFormatted}</span>
                 </div>
             </div>
         )
@@ -135,7 +137,7 @@ export default function ComparePage() {
             ) : documents.length < 2 ? (
                 <div className="z-10 p-12 text-center glass rounded-2xl border border-white/10">
                     <h2 className="text-xl font-semibold mb-2">Not enough documents</h2>
-                    <p className="text-muted-foreground mb-6">You need at least 2 uploaded documents to run a comparison.</p>
+                    <p className="text-muted-foreground mb-6">You need at least 2 processed documents to run a comparison.</p>
                     <Link href="/" className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
                         Upload Document
                     </Link>

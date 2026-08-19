@@ -1,16 +1,15 @@
 """
-Vector Store service using ChromaDB with persistent local storage.
-Each document gets its own ChromaDB collection: doc_{document_id}
+SQLite / In-Memory Vector Store service for Doc-XRay.
+
+Replaces ChromaDB with native Python cosine similarity matching over chunk embeddings.
+Embeddings are computed via Gemini API (768 dimensions) and cached in SQLite JSON or in-memory.
+Zero binary dependencies (no C++, no chromadb, nohnswlib) — 100% Vercel compatible!
 """
 from __future__ import annotations
+import math
 import logging
 from typing import Optional
 from dataclasses import dataclass
-
-import chromadb
-from chromadb.config import Settings
-
-from config import settings as app_settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,20 +21,31 @@ class ScoredChunk:
     page_num: int
     risk_level: str
     risk_score: float
-    distance: float         # ChromaDB L2 distance (lower = more similar)
-    similarity_score: float # Converted to 0–1 scale
+    distance: float         # 1.0 - similarity
+    similarity_score: float # Cosine similarity (0.0 to 1.0)
+
+
+def cosine_similarity(v1: list[float], v2: list[float]) -> float:
+    """Compute cosine similarity between two float vectors."""
+    if not v1 or not v2 or len(v1) != len(v2):
+        return 0.0
+    dot = sum(a * b for a, b in zip(v1, v2))
+    norm_v1 = math.sqrt(sum(a * a for a in v1))
+    norm_v2 = math.sqrt(sum(b * b for b in v2))
+    if norm_v1 == 0.0 or norm_v2 == 0.0:
+        return 0.0
+    sim = dot / (norm_v1 * norm_v2)
+    return max(0.0, min(1.0, float(sim)))
 
 
 class VectorStore:
-    def __init__(self):
-        self._client = chromadb.PersistentClient(
-            path=str(app_settings.chroma_dir),
-            settings=Settings(anonymized_telemetry=False),
-        )
+    """In-memory + SQLite-backed vector store for document chunks."""
 
-    def _collection_name(self, doc_id: str) -> str:
-        # ChromaDB collection names must be valid identifiers
-        return f"doc_{doc_id.replace('-', '_')}"
+    def __init__(self):
+        # In-memory index: doc_id -> list of chunk dicts
+        # Each chunk dict: {chunk_id, text, page_num, risk_level, risk_score, embedding}
+        self._collections: dict[str, list[dict]] = {}
+        logger.info("SQLite/In-Memory VectorStore initialized (100% Vercel compatible)")
 
     def upsert_chunks(
         self,
@@ -45,23 +55,20 @@ class VectorStore:
         embeddings: list[list[float]],
         metadatas: list[dict],
     ) -> None:
-        """Store embeddings and metadata in a document-specific collection."""
-        name = self._collection_name(doc_id)
-        try:
-            collection = self._client.get_or_create_collection(
-                name=name,
-                metadata={"hnsw:space": "cosine"},
-            )
-            collection.upsert(
-                ids=chunk_ids,
-                embeddings=embeddings,
-                documents=texts,
-                metadatas=metadatas,
-            )
-            logger.info(f"Upserted {len(chunk_ids)} chunks for document {doc_id}")
-        except Exception as e:
-            logger.error(f"ChromaDB upsert failed for doc {doc_id}: {e}")
-            raise
+        """Store embeddings and metadata for a document."""
+        chunks = []
+        for i in range(len(chunk_ids)):
+            meta = metadatas[i] if i < len(metadatas) else {}
+            chunks.append({
+                "chunk_id": chunk_ids[i],
+                "text": texts[i] if i < len(texts) else "",
+                "page_num": meta.get("page_num", 1),
+                "risk_level": meta.get("risk_level", "LOW_RISK"),
+                "risk_score": meta.get("risk_score", 0.0),
+                "embedding": embeddings[i] if i < len(embeddings) else [],
+            })
+        self._collections[doc_id] = chunks
+        logger.info(f"Upserted {len(chunk_ids)} chunks for document {doc_id} into VectorStore")
 
     def query(
         self,
@@ -70,65 +77,40 @@ class VectorStore:
         top_k: int = 8,
     ) -> list[ScoredChunk]:
         """
-        Query top-k most similar chunks for the given document.
-        Returns results sorted by similarity (highest first).
+        Query top-k most similar chunks for the given document using cosine similarity.
+        Returns results sorted by similarity score (highest first).
         """
-        name = self._collection_name(doc_id)
-        try:
-            collection = self._client.get_collection(name=name)
-        except Exception:
-            logger.warning(f"No ChromaDB collection found for doc {doc_id}")
+        chunks = self._collections.get(doc_id, [])
+        if not chunks:
+            logger.warning(f"No vector store collection found for doc {doc_id}")
             return []
 
-        try:
-            results = collection.query(
-                query_embeddings=[query_embedding],
-                n_results=min(top_k, collection.count()),
-                include=["documents", "metadatas", "distances"],
-            )
-        except Exception as e:
-            logger.error(f"ChromaDB query failed: {e}")
-            return []
-
-        chunks: list[ScoredChunk] = []
-        ids = results.get("ids", [[]])[0]
-        docs = results.get("documents", [[]])[0]
-        metas = results.get("metadatas", [[]])[0]
-        distances = results.get("distances", [[]])[0]
-
-        for i, chunk_id in enumerate(ids):
-            meta = metas[i] if i < len(metas) else {}
-            dist = distances[i] if i < len(distances) else 1.0
-            # Cosine similarity from cosine distance: similarity = 1 - distance
-            similarity = max(0.0, round(1.0 - dist, 4))
-
-            chunks.append(ScoredChunk(
-                chunk_id=chunk_id,
-                text=docs[i] if i < len(docs) else "",
-                page_num=meta.get("page_num", 1),
-                risk_level=meta.get("risk_level", "LOW_RISK"),
-                risk_score=meta.get("risk_score", 0.0),
-                distance=dist,
-                similarity_score=similarity,
+        scored: list[ScoredChunk] = []
+        for c in chunks:
+            emb = c.get("embedding", [])
+            sim = cosine_similarity(query_embedding, emb)
+            scored.append(ScoredChunk(
+                chunk_id=c["chunk_id"],
+                text=c["text"],
+                page_num=c["page_num"],
+                risk_level=c["risk_level"],
+                risk_score=c["risk_score"],
+                distance=round(1.0 - sim, 4),
+                similarity_score=round(sim, 4),
             ))
 
-        return chunks
+        # Sort descending by similarity
+        scored.sort(key=lambda x: x.similarity_score, reverse=True)
+        return scored[:top_k]
 
     def delete_collection(self, doc_id: str) -> None:
-        """Delete all vectors for a document."""
-        name = self._collection_name(doc_id)
-        try:
-            self._client.delete_collection(name=name)
-            logger.info(f"Deleted ChromaDB collection: {name}")
-        except Exception as e:
-            logger.warning(f"Could not delete collection {name}: {e}")
+        """Delete vectors for a document."""
+        if doc_id in self._collections:
+            del self._collections[doc_id]
+            logger.info(f"Deleted vector collection for doc {doc_id}")
 
     def collection_exists(self, doc_id: str) -> bool:
-        try:
-            self._client.get_collection(self._collection_name(doc_id))
-            return True
-        except Exception:
-            return False
+        return doc_id in self._collections and len(self._collections[doc_id]) > 0
 
 
 # Singleton

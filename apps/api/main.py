@@ -3,8 +3,14 @@ Doc-XRay FastAPI application entry point.
 Configures CORS, mounts all routers, and initializes DB and services on startup.
 """
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
+
+# Ensure apps/api directory is in sys.path
+api_dir = os.path.dirname(os.path.abspath(__file__))
+if api_dir not in sys.path:
+    sys.path.insert(0, api_dir)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,11 +29,14 @@ async def lifespan(app: FastAPI):
     logger.info("=== Doc-XRay API starting ===")
 
     # Initialize database
-    from db.database import init_db
-    await init_db()
-    logger.info("SQLite database initialized.")
+    try:
+        from db.database import init_db
+        await init_db()
+        logger.info("SQLite database initialized.")
+    except Exception as e:
+        logger.warning(f"Database initialization failed: {e}")
 
-    # Pre-load embedding model (slow — better to do once at startup)
+    # Pre-load embedding model
     try:
         from services.embedding_service import get_embedding_service
         get_embedding_service()
@@ -72,6 +81,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         settings.frontend_url,
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],

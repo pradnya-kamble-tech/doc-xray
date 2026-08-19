@@ -39,7 +39,7 @@ class LLMProvider(ABC):
 class GeminiProvider(LLMProvider):
     """Google Gemini API provider."""
 
-    MODELS = ["gemini-3.5-flash", "gemini-flash-latest"]
+    MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"]
 
     def __init__(self):
         if not settings.gemini_api_key:
@@ -67,6 +67,7 @@ class GeminiProvider(LLMProvider):
         
         logger.info(f"Selected Gemini model: {selected_model}")
         
+        self._genai = genai
         self._model = genai.GenerativeModel(
             model_name=selected_model,
             safety_settings=[
@@ -83,8 +84,28 @@ class GeminiProvider(LLMProvider):
             response = self._model.generate_content(full_prompt)
             return response.text
         except Exception as e:
+            error_msg = str(e)
+            if "429" in error_msg or "quota" in error_msg.lower():
+                msg = "Gemini API quota exceeded. Please try again later or check your billing/tier limits."
+                logger.error(msg)
+                raise RuntimeError(msg) from e
             logger.error(f"Gemini API error: {e}")
             raise RuntimeError(f"Gemini API error: {e}") from e
+
+    def get_embedding(self, text: str, task_type: str = "retrieval_document") -> list[float]:
+        """Get text embedding via Gemini Embedding API (768 dimensions)."""
+        try:
+            result = self._genai.embed_content(
+                model="models/text-embedding-004",
+                content=text[:2048],
+                task_type=task_type,
+            )
+            return result["embedding"]
+        except Exception as e:
+            err_str = str(e).lower()
+            if "429" in str(e) or "quota" in err_str or "resource_exhausted" in err_str:
+                raise RuntimeError("Gemini embedding quota exhausted.") from e
+            raise RuntimeError(f"Gemini embedding error: {e}") from e
 
     @property
     def provider_name(self) -> str:

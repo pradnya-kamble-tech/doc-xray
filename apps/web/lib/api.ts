@@ -2,7 +2,7 @@
  * Doc-XRay API client — typed wrappers around all backend endpoints.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -246,4 +246,3 @@ export async function compareDocuments(
 ): Promise<CompareResponse> {
     return apiFetch(`/api/compare/${doc1Id}/${doc2Id}`);
 }
-
