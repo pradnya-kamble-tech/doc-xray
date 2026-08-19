@@ -90,9 +90,9 @@ async def get_analysis(doc_id: str, db: AsyncSession = Depends(get_db)):
                 risk_reasons.append(f"High risk language detected: '{c.text[:50]}...'")
     
     doc_risk_level = "LOW_RISK"
-    if doc_risk_score > 0.6:
+    if any(c.risk_level == "HIGH_RISK" for c in chunks):
         doc_risk_level = "HIGH_RISK"
-    elif doc_risk_score > 0.3:
+    elif any(c.risk_level == "MEDIUM_RISK" for c in chunks):
         doc_risk_level = "MEDIUM_RISK"
         
     doc_type = doc.document_type or "GENERAL"

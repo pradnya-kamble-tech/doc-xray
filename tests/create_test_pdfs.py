@@ -130,8 +130,52 @@ Prepared by: Engineering Leadership Team
 Date: July 2026
 """
 
+# 4. Invoice PDF
+invoice_text = """INVOICE
+WebDesign Pros LLC
+404 Creativity Ave, New York, NY 10001
+Date: 2026-08-15
+Invoice #: INV-2026-0081
+
+Bill To: Acme Corp
+Attn: Accounts Payable
+
+Services Provided:
+1. Website Redesign            $4,500.00
+2. SEO Optimization            $1,200.00
+3. Monthly Hosting (Aug)       $150.00
+
+Subtotal:                      $5,850.00
+Tax (0%):                      $0.00
+Total Due:                     $5,850.00
+
+Please remit payment within 30 days.
+"""
+
+# 5. Academic PDF
+academic_text = """RESEARCH PAPER: QUANTUM ALGORITHMS
+Abstract
+This paper presents a novel approach to quantum error correction protocols 
+that achieves a 15% reduction in physical qubit overhead.
+
+1. Introduction
+Quantum computing holds immense promise for cryptography and material science.
+However, error rates in NISQ devices remain a challenge. 
+Our proposed protocol, Q-Shield, addresses surface code inefficiencies.
+
+2. Methodology
+We simulated 10,000 circuits using Qiskit. 
+Parameters: T1=50us, T2=50us, 2-qubit gate error 0.1%.
+
+3. Results
+The Q-Shield protocol outperformed standard Steane codes in all regimes.
+Threshold improved from 1.2% to 1.45%.
+"""
+
 create_pdf(sys.argv[1] + "/test_receipt.pdf", [receipt_text])
 create_pdf(sys.argv[1] + "/test_contract.pdf", [contract_text[:2000], contract_text[2000:]])
 create_pdf(sys.argv[1] + "/test_general.pdf", [general_text])
+create_pdf(sys.argv[1] + "/test_invoice.pdf", [invoice_text])
+create_pdf(sys.argv[1] + "/test_academic.pdf", [academic_text])
 
-print("All test PDFs created successfully!")
+print("All 5 test PDFs created successfully!")

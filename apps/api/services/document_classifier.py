@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────
 # Confidence threshold — below this → GENERAL
 # ──────────────────────────────────────────────────
-CONFIDENCE_THRESHOLD = 0.30   # 30% of max possible score for the winning type
+CONFIDENCE_THRESHOLD = 0.20   # 20% of max possible score for the winning type
 
 # ──────────────────────────────────────────────────
 # Emoji labels for each document type
@@ -303,8 +303,8 @@ def classify_document(text: str) -> ClassificationResult:
     for doc_type, pat_list in _COMPILED_PATTERNS.items():
         raw_score = sum(weight for pattern, weight in pat_list if pattern.search(text))
         max_possible = _MAX_WEIGHTS[doc_type]
-        # Normalise against a soft cap of 60% of max weights for realistic scores
-        soft_cap = max_possible * 0.60
+        # Normalise against a soft cap to handle varying document lengths better
+        soft_cap = max_possible * 0.35
         normalised = min(raw_score / soft_cap, 1.0) if soft_cap > 0 else 0.0
         scores[doc_type] = normalised
 

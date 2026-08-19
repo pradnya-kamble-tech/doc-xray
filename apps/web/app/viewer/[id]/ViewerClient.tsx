@@ -148,11 +148,12 @@ export function ViewerClient({ docId }: { docId: string }) {
         return c?.id ?? null
     }, [analysis])
 
-    // Computed risk score (provided by backend now)
-    const overallRiskScore = analysis ? Math.round(analysis.risk_score || 0) : 0
+    // Computed risk score (handle 0-1 vs 0-100 gracefully)
+    const rawScore = analysis?.risk_score || 0
+    const overallRiskScore = Math.round(rawScore <= 1.01 ? rawScore * 100 : rawScore)
     const riskColor = overallRiskScore <= 30 ? 'text-green-400' : overallRiskScore <= 70 ? 'text-yellow-400' : 'text-red-400'
     const riskBarColor = overallRiskScore <= 30 ? 'from-green-500 to-emerald-400' : overallRiskScore <= 70 ? 'from-yellow-500 to-amber-400' : 'from-red-500 to-rose-400'
-    const riskLevelStr = analysis?.risk_level === 'HIGH_RISK' ? '🔴 High Risk' : analysis?.risk_level === 'MEDIUM_RISK' ? '🟡 Medium Risk' : '🟢 Low Risk'
+    const riskLevelStr = analysis?.risk_level?.toUpperCase() === 'HIGH_RISK' ? '🔴 High Risk' : analysis?.risk_level?.toUpperCase() === 'MEDIUM_RISK' ? '🟡 Medium Risk' : '🟢 Low Risk'
     const riskLabel = riskLevelStr
 
     // Entity groups
@@ -202,16 +203,18 @@ export function ViewerClient({ docId }: { docId: string }) {
                                 key={chunk.id}
                                 data-chunk-id={chunk.id}
                                 className={`p-5 rounded-lg border leading-relaxed text-sm transition-all duration-200
-                                    ${chunk.risk_level === 'HIGH_RISK' ? 'border-red-500/25 bg-red-500/5' :
-                                        chunk.risk_level === 'MEDIUM_RISK' ? 'border-yellow-500/20 bg-yellow-500/5' :
+                                    ${chunk.risk_level?.toUpperCase() === 'HIGH_RISK' ? 'border-red-500/25 bg-red-500/5' :
+                                        chunk.risk_level?.toUpperCase() === 'MEDIUM_RISK' ? 'border-yellow-500/20 bg-yellow-500/5' :
                                             'border-white/5 bg-white/[0.01] hover:bg-white/[0.03]'}`}
                             >
                                 {chunk.risk_level !== 'LOW_RISK' && (
                                     <div className="text-xs font-bold mb-2 flex items-center gap-2 uppercase tracking-wide">
-                                        {chunk.risk_level === 'HIGH_RISK'
+                                        {chunk.risk_level?.toUpperCase() === 'HIGH_RISK'
                                             ? <span className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded-sm">🔴 High Risk</span>
                                             : <span className="text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-sm">🟡 Medium Risk</span>}
-                                        <span className="text-muted-foreground text-[10px]">score: {Math.round((chunk.risk_score || 0) * 100)}/100</span>
+                                        <span className="text-muted-foreground text-[10px]">
+                                            score: {Math.round((chunk.risk_score || 0) <= 1.01 ? (chunk.risk_score || 0) * 100 : (chunk.risk_score || 0))}/100
+                                        </span>
                                     </div>
                                 )}
                                 {renderChunkWithHighlights(chunk)}

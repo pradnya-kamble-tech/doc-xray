@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const appFont = localFont({
+  src: './fonts/GeistVF.woff',
+})
 
 export const metadata: Metadata = {
   title: 'Doc-XRay | AI Document Intelligence',
@@ -17,7 +19,7 @@ export default function RootLayout({
   // We force dark mode on the body element to match the premium SaaS aesthetic
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen bg-background text-foreground flex flex-col`}>
+      <body className={`${appFont.className} min-h-screen bg-background text-foreground flex flex-col`}>
         <header className="h-14 flex items-center px-6 border-b border-white/5 glass sticky top-0 z-50">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-white text-black flex items-center justify-center font-bold text-xs">

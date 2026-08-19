@@ -1,4 +1,9 @@
-import { ViewerClient } from "./ViewerClient"
+import dynamic from "next/dynamic"
+
+const ViewerClient = dynamic(
+    () => import("./ViewerClient").then((mod) => mod.ViewerClient),
+    { ssr: false }
+)
 
 export default function ViewerPage({ params }: { params: { id: string } }) {
     // We use a separate Client component to manage state, SSE streaming, and interactivity
